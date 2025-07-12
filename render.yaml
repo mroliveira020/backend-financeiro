@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: backend-financeiro
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app"
+    envVars:
+      - key: SUPABASE_URL
+        value: https://<sua-instancia>.supabase.co
+      - key: SUPABASE_KEY
+        value: <sua-chave-api>
+      - key: FLASK_ENV
+        value: production
