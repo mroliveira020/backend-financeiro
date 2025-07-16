@@ -19,10 +19,12 @@ from models import (
     atualizar_inserir_orcamentos
 )
 from analytics import analytics_bp
-app.register_blueprint(analytics_bp)
+
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
+app.register_blueprint(analytics_bp)
+
 
 # =====================================================
 # 🔹 ROTAS IMÓVEIS
