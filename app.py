@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask import send_file, abort
 from flask_cors import CORS
 from dashboard import dashboard_bp
 from models import (
@@ -158,6 +159,20 @@ def post_orcamentos_por_imovel(id_imovel):
 
     resultado = atualizar_inserir_orcamentos(id_imovel, data)
     return jsonify(resultado), 200
+
+
+
+import os
+
+
+# Rota para servir o openapi.json
+@app.route("/openapi.json", methods=["GET"])
+def get_openapi_spec():
+    caminho = os.path.join(os.path.dirname(__file__), "openapi.json")
+    if os.path.exists(caminho):
+        return send_file(caminho, mimetype="application/json")
+    else:
+        abort(404, description="Arquivo openapi.json não encontrado")
 
 # =====================================================
 # 🔹 BLUEPRINT DASHBOARD

@@ -1,0 +1,281 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Financeiro Backend API",
+    "version": "1.0.0",
+    "description": "API para gerenciamento financeiro de im\u00f3veis, categorias e lan\u00e7amentos."
+  },
+  "servers": [
+    {
+      "url": "https://backend-financeiro-m4r6.onrender.com"
+    }
+  ],
+  "paths": {
+    "/imoveis": {
+      "get": {
+        "summary": "Listar todos os im\u00f3veis",
+        "operationId": "getImoveis",
+        "responses": {
+          "200": {
+            "description": "Lista de im\u00f3veis"
+          }
+        }
+      },
+      "post": {
+        "summary": "Adicionar novo im\u00f3vel",
+        "operationId": "addImovel",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nome": {
+                    "type": "string"
+                  },
+                  "vendido": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "nome",
+                  "vendido"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Im\u00f3vel criado"
+          }
+        }
+      }
+    },
+    "/imoveis/{imovel_id}": {
+      "get": {
+        "summary": "Buscar im\u00f3vel por ID",
+        "parameters": [
+          {
+            "name": "imovel_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Im\u00f3vel encontrado"
+          },
+          "404": {
+            "description": "Im\u00f3vel n\u00e3o encontrado"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Atualizar im\u00f3vel",
+        "parameters": [
+          {
+            "name": "imovel_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Im\u00f3vel atualizado"
+          },
+          "404": {
+            "description": "Im\u00f3vel n\u00e3o encontrado"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Excluir im\u00f3vel",
+        "parameters": [
+          {
+            "name": "imovel_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Im\u00f3vel exclu\u00eddo"
+          }
+        }
+      }
+    },
+    "/categorias": {
+      "get": {
+        "summary": "Listar categorias",
+        "responses": {
+          "200": {
+            "description": "Lista de categorias"
+          }
+        }
+      },
+      "post": {
+        "summary": "Adicionar nova categoria",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "categoria": {
+                    "type": "string"
+                  },
+                  "dc": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "categoria",
+                  "dc"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Categoria criada"
+          }
+        }
+      }
+    },
+    "/categorias/{categoria_id}": {
+      "delete": {
+        "summary": "Excluir categoria",
+        "parameters": [
+          {
+            "name": "categoria_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Categoria exclu\u00edda"
+          }
+        }
+      }
+    },
+    "/dashboard/lancamentos/incompletos/{id_imovel}": {
+      "get": {
+        "summary": "Listar lan\u00e7amentos incompletos de um im\u00f3vel",
+        "parameters": [
+          {
+            "name": "id_imovel",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de lan\u00e7amentos incompletos"
+          }
+        }
+      }
+    },
+    "/dashboard/lancamentos/completos/{id_imovel}": {
+      "get": {
+        "summary": "Listar lan\u00e7amentos completos de um im\u00f3vel",
+        "parameters": [
+          {
+            "name": "id_imovel",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de lan\u00e7amentos completos"
+          }
+        }
+      }
+    },
+    "/dashboard/lancamentos/lote": {
+      "post": {
+        "summary": "Adicionar lan\u00e7amentos em lote",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "string"
+                    },
+                    "descricao": {
+                      "type": "string"
+                    },
+                    "valor": {
+                      "type": "number"
+                    },
+                    "id_imovel": {
+                      "type": "integer"
+                    },
+                    "id_categoria": {
+                      "type": "integer"
+                    },
+                    "id_situacao": {
+                      "type": "integer"
+                    },
+                    "ativo": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "descricao",
+                    "valor",
+                    "id_imovel"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Lan\u00e7amentos adicionados"
+          }
+        }
+      }
+    }
+  }
+}
