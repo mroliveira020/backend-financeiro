@@ -3,7 +3,7 @@
   "info": {
     "title": "Financeiro Backend API",
     "version": "1.0.0",
-    "description": "API para gerenciamento financeiro de im\u00f3veis, categorias e lan\u00e7amentos."
+    "description": "API para gerenciamento financeiro de imóveis, categorias e lançamentos."
   },
   "servers": [
     {
@@ -13,16 +13,16 @@
   "paths": {
     "/imoveis": {
       "get": {
-        "summary": "Listar todos os im\u00f3veis",
+        "summary": "Listar todos os imóveis",
         "operationId": "getImoveis",
         "responses": {
           "200": {
-            "description": "Lista de im\u00f3veis"
+            "description": "Lista de imóveis"
           }
         }
       },
       "post": {
-        "summary": "Adicionar novo im\u00f3vel",
+        "summary": "Adicionar novo imóvel",
         "operationId": "addImovel",
         "requestBody": {
           "required": true,
@@ -48,14 +48,14 @@
         },
         "responses": {
           "201": {
-            "description": "Im\u00f3vel criado"
+            "description": "Imóvel criado"
           }
         }
       }
     },
     "/imoveis/{imovel_id}": {
       "get": {
-        "summary": "Buscar im\u00f3vel por ID",
+        "summary": "Buscar imóvel por ID",
         "parameters": [
           {
             "name": "imovel_id",
@@ -68,15 +68,15 @@
         ],
         "responses": {
           "200": {
-            "description": "Im\u00f3vel encontrado"
+            "description": "Imóvel encontrado"
           },
           "404": {
-            "description": "Im\u00f3vel n\u00e3o encontrado"
+            "description": "Imóvel não encontrado"
           }
         }
       },
       "patch": {
-        "summary": "Atualizar im\u00f3vel",
+        "summary": "Atualizar imóvel",
         "parameters": [
           {
             "name": "imovel_id",
@@ -99,15 +99,15 @@
         },
         "responses": {
           "200": {
-            "description": "Im\u00f3vel atualizado"
+            "description": "Imóvel atualizado"
           },
           "404": {
-            "description": "Im\u00f3vel n\u00e3o encontrado"
+            "description": "Imóvel não encontrado"
           }
         }
       },
       "delete": {
-        "summary": "Excluir im\u00f3vel",
+        "summary": "Excluir imóvel",
         "parameters": [
           {
             "name": "imovel_id",
@@ -120,7 +120,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Im\u00f3vel exclu\u00eddo"
+            "description": "Imóvel excluído"
           }
         }
       }
@@ -180,14 +180,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Categoria exclu\u00edda"
+            "description": "Categoria excluída"
           }
         }
       }
     },
     "/dashboard/lancamentos/incompletos/{id_imovel}": {
       "get": {
-        "summary": "Listar lan\u00e7amentos incompletos de um im\u00f3vel",
+        "summary": "Listar lançamentos incompletos de um imóvel",
         "parameters": [
           {
             "name": "id_imovel",
@@ -200,14 +200,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Lista de lan\u00e7amentos incompletos"
+            "description": "Lista de lançamentos incompletos"
           }
         }
       }
     },
     "/dashboard/lancamentos/completos/{id_imovel}": {
       "get": {
-        "summary": "Listar lan\u00e7amentos completos de um im\u00f3vel",
+        "summary": "Listar lançamentos completos de um imóvel",
         "parameters": [
           {
             "name": "id_imovel",
@@ -220,14 +220,15 @@
         ],
         "responses": {
           "200": {
-            "description": "Lista de lan\u00e7amentos completos"
+            "description": "Lista de lançamentos completos"
           }
-        }
+        },
+        "operationId": "getLancamentosCompletosPorImovel"
       }
     },
     "/dashboard/lancamentos/lote": {
       "post": {
-        "summary": "Adicionar lan\u00e7amentos em lote",
+        "summary": "Adicionar lançamentos em lote",
         "requestBody": {
           "required": true,
           "content": {
@@ -272,7 +273,7 @@
         },
         "responses": {
           "200": {
-            "description": "Lan\u00e7amentos adicionados"
+            "description": "Lançamentos adicionados"
           }
         }
       }
