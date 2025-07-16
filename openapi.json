@@ -277,6 +277,17 @@
           }
         }
       }
+    },
+    "/analise/lancamentos": {
+      "get": {
+        "summary": "Obter todos os lançamentos detalhados para análise",
+        "operationId": "getLancamentosUnificados",
+        "responses": {
+          "200": {
+            "description": "Lista de lançamentos completos com dados relacionais"
+          }
+        }
+      }
     }
   }
 }
