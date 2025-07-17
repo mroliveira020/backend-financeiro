@@ -14,13 +14,13 @@ def get_lancamentos_completos_unificados():
             c.dc,
             l.valor,
             l.data,
-            s.nome AS situacao
+            l.id_situacao,
+            l.descricao,
+            l.ativo
         FROM lancamentos l
         JOIN imoveis im ON l.id_imovel = im.id
         JOIN categorias c ON l.id_categoria = c.id
-        JOIN situacoes s ON l.id_situacao = s.id
-        WHERE l.ativo = 1
-        ORDER BY l.data DESC
+        ORDER BY l.data
     """)
     rows = cur.fetchall()
     conn.close()
