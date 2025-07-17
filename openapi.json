@@ -288,6 +288,41 @@
           }
         }
       }
+    },
+    "/sql": {
+      "post": {
+        "summary": "Executar uma consulta SELECT segura",
+        "operationId": "executarSQL",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "query"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultado da consulta"
+          },
+          "400": {
+            "description": "Erro na execução da consulta"
+          },
+          "403": {
+            "description": "Consulta proibida (não SELECT)"
+          }
+        }
+      }
     }
   }
 }
