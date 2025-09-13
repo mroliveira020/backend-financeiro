@@ -1,0 +1,116 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Financeiro Backend API",
+    "version": "1.0.0",
+    "description": "API para gerenciamento financeiro de imóveis, categorias e lançamentos."
+  },
+  "servers": [
+    {
+      "url": "https://backend-financeiro-m4r6.onrender.com"
+    }
+  ],
+  "paths": {
+    "/healthz": {
+      "get": {
+        "summary": "Healthcheck do serviço",
+        "responses": {
+          "200": { "description": "Serviço OK" }
+        }
+      }
+    },
+    "/sql": {
+      "post": {
+        "summary": "Executar uma consulta SELECT segura",
+        "operationId": "executarSQL",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "query"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultado da consulta"
+          },
+          "400": {
+            "description": "Erro na execução da consulta"
+          },
+          "403": {
+            "description": "Consulta proibida (não SELECT)"
+          }
+        }
+      }
+    },
+    "/gpt/lancamentos": {
+      "post": {
+        "summary": "Criar lançamento (uso do agente GPT)",
+        "parameters": [
+          {"in": "header", "name": "X-GPT-TOKEN", "required": true, "schema": {"type": "string"}},
+          {"in": "header", "name": "Idempotency-Key", "required": true, "schema": {"type": "string"}}
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": {"type": "string", "example": "2025-03-10"},
+                  "descricao": {"type": "string"},
+                  "valor": {"type": "number"},
+                  "id_imovel": {"type": "integer"},
+                  "id_categoria": {"type": "integer"},
+                  "id_situacao": {"type": "integer", "example": 1}
+                },
+                "required": ["data","descricao","valor","id_imovel","id_categoria","id_situacao"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {"description": "Criado"},
+          "400": {"description": "Validação"},
+          "401": {"description": "Não autenticado"},
+          "403": {"description": "Token inválido"},
+          "409": {"description": "Idempotência"},
+          "429": {"description": "Limite excedido"}
+        }
+      }
+    },
+    "/imoveis/search": {
+      "get": {
+        "summary": "Buscar imóveis por nome",
+        "parameters": [
+          {"in": "query", "name": "q", "schema": {"type": "string"}},
+          {"in": "query", "name": "limit", "schema": {"type": "integer", "default": 10}},
+          {"in": "query", "name": "offset", "schema": {"type": "integer", "default": 0}}
+        ],
+        "responses": {"200": {"description": "Lista de imóveis"}}
+      }
+    },
+    "/categorias/search": {
+      "get": {
+        "summary": "Buscar categorias por nome",
+        "parameters": [
+          {"in": "query", "name": "q", "schema": {"type": "string"}},
+          {"in": "query", "name": "limit", "schema": {"type": "integer", "default": 10}},
+          {"in": "query", "name": "offset", "schema": {"type": "integer", "default": 0}}
+        ],
+        "responses": {"200": {"description": "Lista de categorias"}}
+      }
+    }
+  }
+}
