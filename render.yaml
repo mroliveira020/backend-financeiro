@@ -92,14 +92,15 @@ services:
       - key: ADMIN_TOKEN
         sync: false
 
-  # Frontend (Static Site)
-  - type: static
+  # Frontend (Static Site) — usar web + env: static no Blueprint
+  - type: web
     name: financeiro-frontend
+    env: static
     buildCommand: |
       cd frontend
       npm ci --no-audit --no-fund
       npm run build
-    publishPath: frontend/dist
+    staticPublishPath: frontend/dist
     envVars:
       - key: VITE_API_URL
         # Aponte para a URL pública do site-backend (ajuste após criar o serviço)
