@@ -1,0 +1,106 @@
+services:
+  # Backend para o Site (UI pública)
+  - type: web
+    name: site-backend
+    env: python
+    plan: free
+    buildCommand: |
+      cd backend
+      pip install -r requirements.txt
+    startCommand: |
+      cd backend
+      gunicorn app:app
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: ENABLE_SQL_ENDPOINT
+        value: "false"
+      - key: ENABLE_GPT_WRITE
+        value: "false"
+      - key: READ_ONLY
+        # true = somente leitura; false = habilita escrita com EDITOR_TOKEN
+        value: "true"
+      - key: ALLOWED_ORIGINS
+        # Ajuste para o domínio público do frontend
+        value: https://SEU-DOMINIO-FRONT
+      - key: RATE_LIMIT_STORAGE_URI
+        value: memory://
+      - key: RATE_LIMIT_EDIT
+        value: 30/minute
+      - key: RATE_LIMIT_GLOBAL
+        value: 300/minute
+      - key: TRUST_PROXY
+        value: "true"
+      # Banco de dados (preencher no painel ou aqui, sem expor segredos)
+      - key: DB_HOST
+        value: SET_ME
+      - key: DB_NAME
+        value: SET_ME
+      - key: DB_USER
+        value: SET_ME
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      # Se for permitir edição via site, defina EDITOR_TOKEN no painel
+      - key: EDITOR_TOKEN
+        sync: false
+
+  # Backend para o Agente GPT (API programática)
+  - type: web
+    name: gpt-backend
+    env: python
+    plan: free
+    buildCommand: |
+      cd backend
+      pip install -r requirements.txt
+    startCommand: |
+      cd backend
+      gunicorn app:app
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: ENABLE_SQL_ENDPOINT
+        value: "true"
+      - key: ENABLE_GPT_WRITE
+        value: "true"
+      - key: READ_ONLY
+        value: "true"
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      - key: RATE_LIMIT_STORAGE_URI
+        value: memory://
+      - key: RATE_LIMIT_ADMIN
+        value: 10/minute
+      - key: RATE_LIMIT_GPT_WRITE
+        value: 20/minute
+      - key: TRUST_PROXY
+        value: "true"
+      - key: DB_HOST
+        value: SET_ME
+      - key: DB_NAME
+        value: SET_ME
+      - key: DB_USER
+        value: SET_ME
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: GPT_TOKEN
+        sync: false
+      # (Opcional) proteger /sql com token
+      - key: ADMIN_TOKEN
+        sync: false
+
+  # Frontend (Static Site)
+  - type: static
+    name: financeiro-frontend
+    buildCommand: |
+      cd frontend
+      npm ci --no-audit --no-fund
+      npm run build
+    publishPath: frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        # Aponte para a URL pública do site-backend (ajuste após criar o serviço)
+        value: https://SEU-SITE-BACKEND.onrender.com
