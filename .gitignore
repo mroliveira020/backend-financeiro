@@ -1,0 +1,16 @@
+# MacOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+venv/
+*.log
+
+# Node
+node_modules/
+frontend/dist/
+
+# Outros
+backend_server.log
+frontend_server.log
