@@ -9,8 +9,10 @@ services:
       pip install -r requirements.txt
     startCommand: |
       cd backend
-      gunicorn app:app
+      gunicorn app:app --bind 0.0.0.0:$PORT
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
       - key: APP_ENV
         value: production
       - key: ENABLE_SQL_ENDPOINT
@@ -56,8 +58,10 @@ services:
       pip install -r requirements.txt
     startCommand: |
       cd backend
-      gunicorn app:app
+      gunicorn app:app --bind 0.0.0.0:$PORT
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
       - key: APP_ENV
         value: production
       - key: ENABLE_SQL_ENDPOINT
