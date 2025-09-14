@@ -72,7 +72,7 @@
 - Frontend (Static Site):
   - Root `frontend`, build `npm ci && npm run build`, publish `dist`.
   - `VITE_API_URL` deve apontar para a URL pública do backend.
-- Blueprint opcional: `render.yaml` na raiz com os 2 serviços.
+- Blueprint: `render.yaml` na raiz com 3 serviços (site-backend, gpt-backend, frontend). Use `runtime.txt` (raiz) para fixar a versão do Python no Render.
 
 ### Perfis de Deploy
 
