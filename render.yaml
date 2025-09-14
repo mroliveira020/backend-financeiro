@@ -3,16 +3,13 @@ services:
   - type: web
     name: site-backend
     env: python
+    rootDir: backend
     plan: free
     buildCommand: |
-      cd backend
       pip install -r requirements.txt
     startCommand: |
-      cd backend
       gunicorn app:app --bind 0.0.0.0:$PORT
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.9
       - key: APP_ENV
         value: production
       - key: ENABLE_SQL_ENDPOINT
@@ -52,16 +49,13 @@ services:
   - type: web
     name: gpt-backend
     env: python
+    rootDir: backend
     plan: free
     buildCommand: |
-      cd backend
       pip install -r requirements.txt
     startCommand: |
-      cd backend
       gunicorn app:app --bind 0.0.0.0:$PORT
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.9
       - key: APP_ENV
         value: production
       - key: ENABLE_SQL_ENDPOINT
@@ -107,5 +101,5 @@ services:
     staticPublishPath: frontend/dist
     envVars:
       - key: VITE_API_URL
-        # Aponte para a URL pública do site-backend (ajuste após criar o serviço)
-        value: https://SEU-SITE-BACKEND.onrender.com
+        # URL pública do site-backend
+        value: https://site-backend-hg4w.onrender.com

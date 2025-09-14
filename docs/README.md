@@ -66,13 +66,13 @@
 ## Deploy (Render)
 
 - Backend (Flask):
-  - Serviço Web Python com root `backend`, `pip install -r requirements.txt` e `gunicorn app:app`.
+  - Serviço Web Python com `rootDir: backend` no blueprint, `pip install -r requirements.txt` e `gunicorn app:app`.
   - Variáveis: `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_PORT`, `FLASK_ENV=production`.
   - Recomendações: restringir CORS por domínio, desabilitar `/sql` em produção ou exigir token.
 - Frontend (Static Site):
   - Root `frontend`, build `npm ci && npm run build`, publish `dist`.
   - `VITE_API_URL` deve apontar para a URL pública do backend.
-- Blueprint: `render.yaml` na raiz com 3 serviços (site-backend, gpt-backend, frontend). Use `runtime.txt` (raiz) para fixar a versão do Python no Render.
+- Blueprint: `render.yaml` na raiz com 3 serviços (site-backend, gpt-backend, frontend). Use `rootDir: backend` e `backend/runtime.txt` para fixar a versão do Python.
 
 ### Perfis de Deploy
 
