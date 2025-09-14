@@ -23,8 +23,8 @@ services:
         # true = somente leitura; false = habilita escrita com EDITOR_TOKEN
         value: "true"
       - key: ALLOWED_ORIGINS
-        # Ajuste para o domínio público do frontend
-        value: https://SEU-DOMINIO-FRONT
+        # Domínio público do frontend
+        value: https://financeiro-frontend-hg4w.onrender.com
       - key: RATE_LIMIT_STORAGE_URI
         value: memory://
       - key: RATE_LIMIT_EDIT
