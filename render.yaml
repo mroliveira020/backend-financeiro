@@ -12,6 +12,8 @@ services:
     envVars:
       - key: APP_ENV
         value: production
+      - key: PYTHON_VERSION
+        value: 3.12.7
       - key: ENABLE_SQL_ENDPOINT
         value: "false"
       - key: ENABLE_GPT_WRITE
@@ -58,6 +60,8 @@ services:
     envVars:
       - key: APP_ENV
         value: production
+      - key: PYTHON_VERSION
+        value: 3.12.7
       - key: ENABLE_SQL_ENDPOINT
         value: "true"
       - key: ENABLE_GPT_WRITE
