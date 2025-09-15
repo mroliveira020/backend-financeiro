@@ -284,6 +284,85 @@ def listar_resumo_financeiro(id_imovel):
     return [dict(zip(colunas, row)) for row in resultados]
 
 # ======================================================
+# 🔹 Funções auxiliares — Atualização e últimos lançamentos
+# ======================================================
+
+def obter_data_ultima_atualizacao():
+    """Retorna a maior data entre lançamentos confirmados (id_situacao = 1)
+    com data menor ou igual à data atual. Retorna string DD/MM/AAAA ou None."""
+    conn, cur = conectar()
+    cur.execute(
+        """
+        SELECT MAX(data) AS ultima_data
+        FROM lancamentos
+        WHERE id_situacao = 1
+          AND data <= CURRENT_DATE
+        """
+    )
+    row = cur.fetchone()
+    conn.close()
+    if not row or not row[0]:
+        return None
+    try:
+        return row[0].strftime('%d/%m/%Y')
+    except Exception:
+        # Se vier como string ISO
+        s = str(row[0])
+        if '-' in s:
+            partes = s.split('-')
+            if len(partes) == 3:
+                return f"{partes[2]}/{partes[1]}/{partes[0]}"
+        return s
+
+
+def listar_ultimos_lancamentos_confirmados(limit=10):
+    """Lista os últimos lançamentos confirmados (id_situacao = 1),
+    com data <= hoje, ordenados por data desc (e id desc), com nome do imóvel e categoria."""
+    try:
+        limit = int(limit)
+    except Exception:
+        limit = 10
+    if limit < 1:
+        limit = 1
+    if limit > 50:
+        limit = 50
+
+    conn, cur = conectar()
+    cur.execute(
+        """
+        SELECT l.data, l.descricao, l.valor, i.nome AS imovel, c.categoria AS categoria
+        FROM lancamentos l
+        JOIN imoveis i ON i.id = l.id_imovel
+        JOIN categorias c ON c.id = l.id_categoria
+        WHERE l.id_situacao = 1
+          AND l.data <= CURRENT_DATE
+        ORDER BY l.data DESC, l.id DESC
+        LIMIT %s
+        """,
+        (limit,),
+    )
+    rows = cur.fetchall()
+    conn.close()
+
+    itens = []
+    for r in rows:
+        item = dict(r)
+        d = item.get('data')
+        if d:
+            try:
+                item['data'] = d.strftime('%d/%m/%Y')
+            except Exception:
+                s = str(d)
+                if '-' in s:
+                    partes = s.split('-')
+                    if len(partes) == 3:
+                        item['data'] = f"{partes[2]}/{partes[1]}/{partes[0]}"
+                else:
+                    item['data'] = s
+        itens.append(item)
+    return itens
+
+# ======================================================
 # 🔹 Funções para ORÇAMENTOS
 # ======================================================
 

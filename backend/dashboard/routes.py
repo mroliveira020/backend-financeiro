@@ -7,7 +7,9 @@ from ratelimit import limiter
 from models import (
     listar_lancamentos_incompletos_view,
     listar_lancamentos_completos_view,
-    adicionar_lancamentos_em_lote
+    adicionar_lancamentos_em_lote,
+    obter_data_ultima_atualizacao,
+    listar_ultimos_lancamentos_confirmados,
 )
 
 # ==========================================================
@@ -118,3 +120,28 @@ def alterar_lancamento_incompleto(id_lancamento):
     except Exception as e:
         print(f"Erro ao alterar lançamento: {e}")
         return jsonify({"error": "Erro ao atualizar lançamento"}), 500
+
+# ==========================================================
+# 🔹 Rodapé: Data de atualização e últimos lançamentos
+# ==========================================================
+@dashboard_bp.route('/dashboard/ultima_atualizacao', methods=['GET'])
+@cross_origin(origins=ALLOWED_ORIGINS_LIST or '*')
+def get_ultima_atualizacao():
+    try:
+        data_str = obter_data_ultima_atualizacao()
+        return jsonify({"data": data_str}), 200
+    except Exception as e:
+        print(f"Erro ao obter data de atualização: {e}")
+        return jsonify({"error": "Erro ao obter data de atualização"}), 500
+
+
+@dashboard_bp.route('/dashboard/ultimos_lancamentos', methods=['GET'])
+@cross_origin(origins=ALLOWED_ORIGINS_LIST or '*')
+def get_ultimos_lancamentos():
+    try:
+        limit = request.args.get('limit', 10)
+        itens = listar_ultimos_lancamentos_confirmados(limit)
+        return jsonify(itens), 200
+    except Exception as e:
+        print(f"Erro ao listar últimos lançamentos: {e}")
+        return jsonify({"error": "Erro ao listar últimos lançamentos"}), 500

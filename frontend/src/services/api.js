@@ -23,3 +23,14 @@ export const addImovel = async (novoImovel) => {
   return data;
 };
 
+// Rodapé: Data de atualização (último confirmado <= hoje)
+export async function fetchUltimaAtualizacao() {
+  const { data } = await api.get('/dashboard/ultima_atualizacao');
+  return data; // { data: 'DD/MM/AAAA' | null }
+}
+
+// Rodapé: Últimos lançamentos confirmados (globais)
+export async function fetchUltimosLancamentos(limit = 10) {
+  const { data } = await api.get(`/dashboard/ultimos_lancamentos?limit=${limit}`);
+  return data; // [{ data, descricao, valor, imovel, categoria }]
+}

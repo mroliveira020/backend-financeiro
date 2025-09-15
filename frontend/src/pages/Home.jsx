@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { fetchImoveis, deleteImovel, addImovel } from "../services/api";
+import { fetchImoveis, deleteImovel, addImovel, fetchUltimaAtualizacao, fetchUltimosLancamentos } from "../services/api";
 import "bootstrap/dist/css/bootstrap.min.css";
 import useEditorToken from "../hooks/useEditorToken";
 import { hasEditorToken } from "../services/auth";
@@ -8,6 +8,10 @@ import { hasEditorToken } from "../services/auth";
 function Home() {
   const [imoveis, setImoveis] = useState([]);
   const [newImovel, setNewImovel] = useState({ nome: "", vendido: false });
+  const [ultimaAtualizacao, setUltimaAtualizacao] = useState(null);
+  const [showUltimos, setShowUltimos] = useState(false);
+  const [ultimos, setUltimos] = useState([]);
+  const [loadingUltimos, setLoadingUltimos] = useState(false);
   const navigate = useNavigate();
   const editorToken = useEditorToken();
   const canEdit = !!editorToken;
@@ -20,6 +24,10 @@ function Home() {
       }));
       setImoveis(imoveisCorrigidos);
     });
+    // Carrega data de atualização
+    fetchUltimaAtualizacao()
+      .then((res) => setUltimaAtualizacao(res?.data || null))
+      .catch(() => setUltimaAtualizacao(null));
   }, []);
 
   const handleAddImovel = async () => {
@@ -143,6 +151,86 @@ function Home() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Rodapé com Data de Atualização e Ação */}
+      <div className="mt-4 pt-2 border-top d-flex justify-content-between align-items-center small text-muted">
+        <span>
+          Data de atualização: <strong>{ultimaAtualizacao || "—"}</strong>
+        </span>
+        <button
+          type="button"
+          className="btn btn-link btn-sm p-0"
+          onClick={async () => {
+            setShowUltimos(true);
+            setLoadingUltimos(true);
+            try {
+              const itens = await fetchUltimosLancamentos(10);
+              setUltimos(itens || []);
+            } catch (e) {
+              setUltimos([]);
+            } finally {
+              setLoadingUltimos(false);
+            }
+          }}
+        >
+          Ver últimos 10 lançamentos
+        </button>
+      </div>
+
+      {/* Modal simples para últimos lançamentos */}
+      {showUltimos && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100"
+          style={{ background: "rgba(0,0,0,0.4)", zIndex: 1050 }}
+          onClick={() => setShowUltimos(false)}
+        >
+          <div
+            className="card shadow position-absolute p-3"
+            style={{ maxWidth: 700, width: "95%", top: "10%", left: "50%", transform: "translateX(-50%)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <h2 className="fs-6 fw-semibold mb-0">Últimos 10 lançamentos</h2>
+              <button className="btn btn-sm btn-outline-secondary" onClick={() => setShowUltimos(false)}>Fechar</button>
+            </div>
+            {loadingUltimos ? (
+              <p className="text-muted mb-0">Carregando...</p>
+            ) : (
+              <div className="table-responsive" style={{ maxHeight: 400, overflowY: "auto" }}>
+                <table className="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Data</th>
+                      <th>Descrição</th>
+                      <th className="text-end">Valor</th>
+                      <th>Imóvel</th>
+                      <th>Categoria</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(ultimos || []).map((item, idx) => (
+                      <tr key={idx}>
+                        <td>{item.data}</td>
+                        <td>{item.descricao}</td>
+                        <td className="text-end">
+                          {Number(item.valor ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                        </td>
+                        <td>{item.imovel}</td>
+                        <td>{item.categoria}</td>
+                      </tr>
+                    ))}
+                    {(!ultimos || ultimos.length === 0) && (
+                      <tr>
+                        <td colSpan={5} className="text-center text-muted">Nenhum lançamento encontrado.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
