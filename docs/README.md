@@ -46,6 +46,16 @@
 - Site Backend: API para o site público — deve restringir CORS, desativar `/sql` e aplicar política de edição.
 - Frontend: site estático (Vite) consumindo o Site Backend.
 
+### URLs de Produção (Render)
+
+- Site Backend: https://site-backend-hg4w.onrender.com
+- GPT Backend: https://gpt-backend-hg4w.onrender.com
+- Frontend: https://financeiro-frontend-hg4w.onrender.com
+
+Observações:
+- O Frontend deve apontar `VITE_API_URL` para o Site Backend.
+- O Site Backend deve ter `ALLOWED_ORIGINS` configurado para o domínio do Frontend.
+
 ### Integração GPT — Inclusão de Transações (Pagamentos)
 
 - Objetivo: permitir que o agente GPT insira pagamentos como lançamentos na API, com segurança e validação.
@@ -196,6 +206,35 @@ Melhorias propostas para esses endpoints:
 ## Plano de Ação
 
 O plano priorizado está em `docs/PLANO_DE_ACAO.md`.
+
+### Deploy (Render) — Serviços e Variáveis
+
+- site-backend (web/python)
+  - Build: `pip install -r requirements.txt`, Start: `gunicorn app:app`
+  - Env:
+    - `APP_ENV=production`, `ENABLE_SQL_ENDPOINT=false`, `ENABLE_GPT_WRITE=false`, `READ_ONLY=true`
+    - `ALLOWED_ORIGINS=https://financeiro-frontend-hg4w.onrender.com`
+    - `DB_HOST=aws-0-sa-east-1.pooler.supabase.com`, `DB_NAME=postgres`, `DB_USER=postgres.thmekudlkuwjuddkyhpi`, `DB_PASSWORD` (definir no painel), `DB_PORT=5432`
+    - `RATE_LIMIT_STORAGE_URI=memory://`, `RATE_LIMIT_EDIT=30/minute`, `RATE_LIMIT_GLOBAL=300/minute`, `TRUST_PROXY=true`
+    - `EDITOR_TOKEN` (opcional, definir no painel quando habilitar edição)
+- gpt-backend (web/python)
+  - Build: `pip install -r requirements.txt`, Start: `gunicorn app:app`
+  - Env:
+    - `APP_ENV=production`, `ENABLE_SQL_ENDPOINT=true`, `ENABLE_GPT_WRITE=true`, `READ_ONLY=true`
+    - `ALLOWED_ORIGINS=*`
+    - `DB_HOST=aws-0-sa-east-1.pooler.supabase.com`, `DB_NAME=postgres`, `DB_USER=postgres.thmekudlkuwjuddkyhpi`, `DB_PASSWORD` (definir no painel), `DB_PORT=5432`
+    - `RATE_LIMIT_STORAGE_URI=memory://`, `RATE_LIMIT_ADMIN=10/minute`, `RATE_LIMIT_GPT_WRITE=20/minute`, `TRUST_PROXY=true`
+    - `GPT_TOKEN` (definir no painel), `ADMIN_TOKEN` (opcional, protege `/sql`)
+- financeiro-frontend (static)
+  - Build: `cd frontend && npm ci --no-audit --no-fund && npm run build`
+  - Publicar: `frontend/dist`
+  - Env:
+    - `VITE_API_URL=https://site-backend-hg4w.onrender.com`
+
+Checklist pós-deploy:
+- Validar `GET /healthz` nos dois backends; abrir o Frontend e navegar.
+- Testar CORS: chamadas da UI devem funcionar sem erros de origem.
+- Se edição for liberada no site, definir `EDITOR_TOKEN` e ajustar `READ_ONLY=false` no site-backend.
 
 ## Referências de Código (linhas relevantes)
 

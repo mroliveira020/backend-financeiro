@@ -32,11 +32,11 @@ services:
         value: "true"
       # Banco de dados (preencher no painel ou aqui, sem expor segredos)
       - key: DB_HOST
-        value: SET_ME
+        value: aws-0-sa-east-1.pooler.supabase.com
       - key: DB_NAME
-        value: SET_ME
+        value: postgres
       - key: DB_USER
-        value: SET_ME
+        value: postgres.thmekudlkuwjuddkyhpi
       - key: DB_PASSWORD
         sync: false
       - key: DB_PORT
@@ -75,11 +75,11 @@ services:
       - key: TRUST_PROXY
         value: "true"
       - key: DB_HOST
-        value: SET_ME
+        value: aws-0-sa-east-1.pooler.supabase.com
       - key: DB_NAME
-        value: SET_ME
+        value: postgres
       - key: DB_USER
-        value: SET_ME
+        value: postgres.thmekudlkuwjuddkyhpi
       - key: DB_PASSWORD
         sync: false
       - key: DB_PORT
