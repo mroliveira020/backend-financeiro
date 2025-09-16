@@ -149,7 +149,7 @@ Observações:
   - GET `/dashboard/ultima_atualizacao` — data do último lançamento confirmado — `backend/dashboard/routes.py:127`.
   - GET `/dashboard/ultimos_lancamentos?limit=10` — últimos lançamentos confirmados — `backend/dashboard/routes.py:138`.
 - Indicadores (Home)
-  - GET `/dashboard/gastos-mensais?meses=6` — totais mensais por imóvel para gráfico empilhado — `backend/dashboard/routes.py:148`.
+  - GET `/dashboard/gastos-mensais?meses=12` — totais mensais por imóvel (últimos 12 meses, excluindo categorias 8, 15 e 18) para gráfico empilhado — `backend/dashboard/routes.py:148`.
 - Busca auxiliar (`ENABLE_SEARCH_API=true`)
   - GET `/imoveis/search?q=<texto>&limit=&offset=` — busca rápida — `backend/search.py:30`.
   - GET `/categorias/search?q=<texto>&limit=&offset=` — busca rápida — `backend/search.py:66`.
@@ -181,6 +181,7 @@ Observações:
 - A idempotência do GPT (memória in-memory em `backend/gpt.py`) se perde a cada restart; Plano 9 cobre a migração para Redis/Postgres.
 - O logger de auditoria imprime resumo do corpo no stdout; sanitização extra (tokens/PII) segue listado no Plano 6.6.
 - Scripts `dev.sh` e `scripts/install-dev-command.sh` aceleram o setup local (backend + frontend simultâneos).
+- O gráfico de desembolsos usa os últimos 12 meses e ignora categorias específicas (IDs 8, 15 e 18); ajuste adicional para comissão pendente no plano.
 
 ## Rotas Em Uso (UI atual)
 
@@ -191,7 +192,7 @@ Com base nas páginas Home e Dashboard, as rotas efetivamente utilizadas pelo fr
 - Dashboard/Lançamentos: `GET /dashboard/lancamentos/incompletos/:id_imovel`, `GET /dashboard/lancamentos/completos/:id_imovel`, `PATCH /dashboard/lancamentos/:id_lancamento`, `DELETE /dashboard/lancamentos/:id_lancamento`, `POST /dashboard/lancamentos/lote`.
 - Resumo/Orçamentos: `GET /dashboard/resumo-financeiro/:id_imovel`, `GET /orcamentos/:id_imovel`, `POST /orcamentos/:id_imovel`.
 - Rodapé/Home: `GET /dashboard/ultima_atualizacao`, `GET /dashboard/ultimos_lancamentos`.
-- Indicadores/Home: `GET /dashboard/gastos-mensais?meses=6`.
+- Indicadores/Home: `GET /dashboard/gastos-mensais?meses=12`.
 
 ## Rotas Não Utilizadas pela UI (atual)
 
@@ -208,6 +209,7 @@ Sugestão: manter, documentar como “suporte/administrativo” ou desabilitar e
 Existem rotas pensadas para consumo programático (ex.: integrações e consultas ad‑hoc), sem página de frontend associada:
 
 - `GET /imoveis/search` e `GET /categorias/search` — busca paginada para confirmar IDs (rate limit).
+- `GET /dashboard/gastos-mensais` — série agregada de lançamentos confirmados por imóvel (ignora categorias 8, 15 e 18).
 - `POST /gpt/lancamentos` — criação de lançamentos via agente (token + idempotência).
 - `GET /analise/lancamentos` — retorna lançamentos com joins (para análises).
 - `POST /sql` — executor de SELECT “seguro”.
