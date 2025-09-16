@@ -30,7 +30,7 @@ def listar_imoveis():
                 WHERE l.id_imovel = im.id
                   AND l.id_situacao = 1
                   AND (l.ativo IS DISTINCT FROM FALSE)
-                  AND (l.id_categoria IS NULL OR c.id NOT IN (8, 15, 18))
+                  AND (l.id_categoria IS NULL OR c.id NOT IN (4, 8, 15, 18))
             ),
             totais AS (
                 SELECT

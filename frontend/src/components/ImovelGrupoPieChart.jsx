@@ -10,7 +10,7 @@ const currencyFormatter = new Intl.NumberFormat("pt-BR", {
 });
 
 export default function ImovelGrupoPieChart({ grupos = [] }) {
-  const { datasets, labels, legend } = useMemo(() => {
+  const { datasets, labels, totais } = useMemo(() => {
     const itens = Array.isArray(grupos)
       ? grupos
           .filter((grupo) => grupo && typeof grupo.total !== "undefined")
@@ -21,23 +21,14 @@ export default function ImovelGrupoPieChart({ grupos = [] }) {
       : [];
 
     if (!itens.length) {
-      return { datasets: null, labels: [], legend: [] };
+      return { datasets: null, labels: [], totais: [] };
     }
-
-    const legend = itens.map((item, index) => {
-      const cor = chartPalette[index % chartPalette.length];
-      return {
-        ...item,
-        cor,
-        valorAbsoluto: Math.abs(item.total),
-      };
-    });
 
     const datasets = [
       {
-        data: legend.map((item) => item.valorAbsoluto),
-        backgroundColor: legend.map((item) => item.cor),
-        borderColor: legend.map((item) => item.cor.replace("0.65", "0.85")),
+        data: itens.map((item) => Math.abs(item.total)),
+        backgroundColor: itens.map((_, index) => chartPalette[index % chartPalette.length]),
+        borderColor: itens.map((_, index) => chartPalette[index % chartPalette.length].replace("0.65", "0.85")),
         borderWidth: 1,
         hoverOffset: 4,
       },
@@ -45,8 +36,8 @@ export default function ImovelGrupoPieChart({ grupos = [] }) {
 
     return {
       datasets,
-      labels: legend.map((item) => item.nome),
-      legend,
+      labels: itens.map((item) => item.nome),
+      totais: itens.map((item) => item.total),
     };
   }, [grupos]);
 
@@ -69,8 +60,7 @@ export default function ImovelGrupoPieChart({ grupos = [] }) {
                 callbacks: {
                   label: (context) => {
                     const label = labels[context.dataIndex] || "";
-                    const item = legend[context.dataIndex];
-                    const valor = item ? item.total : context.parsed || 0;
+                    const valor = totais[context.dataIndex] ?? context.parsed ?? 0;
                     return `${label}: ${currencyFormatter.format(valor)}`;
                   },
                 },
@@ -79,18 +69,6 @@ export default function ImovelGrupoPieChart({ grupos = [] }) {
           }}
         />
       </div>
-      <ul className="mini-pie-chart__legend">
-        {legend.map((item, index) => (
-          <li key={`${item.nome}-${index}`} className="mini-pie-chart__legend-item">
-            <span
-              className="mini-pie-chart__color"
-              style={{ backgroundColor: item.cor }}
-            />
-            <span className="mini-pie-chart__label">{item.nome}</span>
-            <span className="mini-pie-chart__value">{currencyFormatter.format(item.total)}</span>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

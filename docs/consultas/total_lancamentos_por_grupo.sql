@@ -11,6 +11,6 @@ JOIN grupos g ON g.id = c.id_grupo
 WHERE l.id_imovel = :id_imovel
   AND l.id_situacao = 1
   AND (l.ativo IS DISTINCT FROM FALSE)
-  AND (l.id_categoria IS NULL OR c.id NOT IN (8, 15, 18))
+  AND (l.id_categoria IS NULL OR c.id NOT IN (4, 8, 15, 18))
 GROUP BY g.grupo
 ORDER BY g.grupo;
