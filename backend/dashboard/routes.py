@@ -10,6 +10,7 @@ from models import (
     adicionar_lancamentos_em_lote,
     obter_data_ultima_atualizacao,
     listar_ultimos_lancamentos_confirmados,
+    listar_totais_mensais_por_imovel,
 )
 
 # ==========================================================
@@ -145,3 +146,15 @@ def get_ultimos_lancamentos():
     except Exception as e:
         print(f"Erro ao listar últimos lançamentos: {e}")
         return jsonify({"error": "Erro ao listar últimos lançamentos"}), 500
+
+
+@dashboard_bp.route('/dashboard/gastos-mensais', methods=['GET'])
+@cross_origin(origins=ALLOWED_ORIGINS_LIST or '*')
+def get_gastos_mensais():
+    try:
+        meses = request.args.get('meses', 6)
+        dados = listar_totais_mensais_por_imovel(meses)
+        return jsonify(dados), 200
+    except Exception as e:
+        print(f"Erro ao listar gastos mensais: {e}")
+        return jsonify({"error": "Erro ao listar gastos mensais"}), 500

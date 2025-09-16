@@ -363,6 +363,57 @@ def listar_ultimos_lancamentos_confirmados(limit=10):
         itens.append(item)
     return itens
 
+
+def listar_totais_mensais_por_imovel(meses=6):
+    """Retorna os totais desembolsados por mês (lancamentos confirmados), agrupados por imóvel."""
+
+    try:
+        meses = int(meses)
+    except Exception:
+        meses = 6
+    meses = max(1, min(meses, 24))
+
+    intervalo = max(meses - 1, 0)
+
+    conn, cur = conectar()
+    try:
+        cur.execute(
+            """
+            SELECT
+                DATE_TRUNC('month', l.data) AS mes,
+                i.id AS id_imovel,
+                i.nome AS nome_imovel,
+                SUM(l.valor) AS total
+            FROM lancamentos l
+            JOIN imoveis i ON i.id = l.id_imovel
+            WHERE l.id_situacao = 1
+              AND l.ativo = TRUE
+              AND l.data >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month' * %s
+              and l.valor>0
+            GROUP BY mes, i.id, i.nome
+            ORDER BY mes ASC, i.nome ASC
+            """,
+            (intervalo,),
+        )
+        rows = cur.fetchall()
+        resultados = []
+        for mes, id_imovel, nome_imovel, total in rows:
+            try:
+                mes_iso = mes.strftime('%Y-%m-01')
+            except Exception:
+                mes_iso = str(mes)
+            resultados.append(
+                {
+                    "mes": mes_iso,
+                    "id_imovel": id_imovel,
+                    "nome_imovel": nome_imovel,
+                    "total": float(total or 0),
+                }
+            )
+        return resultados
+    finally:
+        conn.close()
+
 # ======================================================
 # 🔹 Funções para ORÇAMENTOS
 # ======================================================

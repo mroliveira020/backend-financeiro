@@ -148,6 +148,8 @@ Observações:
 - Rodapé (Home)
   - GET `/dashboard/ultima_atualizacao` — data do último lançamento confirmado — `backend/dashboard/routes.py:127`.
   - GET `/dashboard/ultimos_lancamentos?limit=10` — últimos lançamentos confirmados — `backend/dashboard/routes.py:138`.
+- Indicadores (Home)
+  - GET `/dashboard/gastos-mensais?meses=6` — totais mensais por imóvel para gráfico empilhado — `backend/dashboard/routes.py:148`.
 - Busca auxiliar (`ENABLE_SEARCH_API=true`)
   - GET `/imoveis/search?q=<texto>&limit=&offset=` — busca rápida — `backend/search.py:30`.
   - GET `/categorias/search?q=<texto>&limit=&offset=` — busca rápida — `backend/search.py:66`.
@@ -189,6 +191,7 @@ Com base nas páginas Home e Dashboard, as rotas efetivamente utilizadas pelo fr
 - Dashboard/Lançamentos: `GET /dashboard/lancamentos/incompletos/:id_imovel`, `GET /dashboard/lancamentos/completos/:id_imovel`, `PATCH /dashboard/lancamentos/:id_lancamento`, `DELETE /dashboard/lancamentos/:id_lancamento`, `POST /dashboard/lancamentos/lote`.
 - Resumo/Orçamentos: `GET /dashboard/resumo-financeiro/:id_imovel`, `GET /orcamentos/:id_imovel`, `POST /orcamentos/:id_imovel`.
 - Rodapé/Home: `GET /dashboard/ultima_atualizacao`, `GET /dashboard/ultimos_lancamentos`.
+- Indicadores/Home: `GET /dashboard/gastos-mensais?meses=6`.
 
 ## Rotas Não Utilizadas pela UI (atual)
 

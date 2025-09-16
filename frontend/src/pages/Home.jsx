@@ -1,9 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { fetchImoveis, deleteImovel, addImovel, fetchUltimaAtualizacao, fetchUltimosLancamentos } from "../services/api";
+import {
+  fetchImoveis,
+  deleteImovel,
+  addImovel,
+  fetchUltimaAtualizacao,
+  fetchUltimosLancamentos,
+  fetchGastosMensais,
+} from "../services/api";
 import "bootstrap/dist/css/bootstrap.min.css";
 import useEditorToken from "../hooks/useEditorToken";
 import "./Home.css";
+import GastosMensaisChart from "../components/GastosMensaisChart";
 
 function Home() {
   const [imoveis, setImoveis] = useState([]);
@@ -12,6 +20,9 @@ function Home() {
   const [showUltimos, setShowUltimos] = useState(false);
   const [ultimos, setUltimos] = useState([]);
   const [loadingUltimos, setLoadingUltimos] = useState(false);
+  const [gastosMensais, setGastosMensais] = useState([]);
+  const [loadingGastos, setLoadingGastos] = useState(true);
+  const [erroGastos, setErroGastos] = useState(false);
   const editorToken = useEditorToken();
   const canEdit = !!editorToken;
 
@@ -23,10 +34,22 @@ function Home() {
       }));
       setImoveis(imoveisCorrigidos);
     });
-    // Carrega data de atualização
+
     fetchUltimaAtualizacao()
       .then((res) => setUltimaAtualizacao(res?.data || null))
       .catch(() => setUltimaAtualizacao(null));
+
+    setLoadingGastos(true);
+    fetchGastosMensais(6)
+      .then((dados) => {
+        setGastosMensais(dados || []);
+        setErroGastos(false);
+      })
+      .catch(() => {
+        setGastosMensais([]);
+        setErroGastos(true);
+      })
+      .finally(() => setLoadingGastos(false));
   }, []);
 
   const handleAddImovel = async () => {
@@ -52,6 +75,28 @@ function Home() {
           {canEdit ? "Modo editor ativo" : "Visualização somente leitura"}
         </div>
       </header>
+
+      {/* Gráfico de desembolsos mensais */}
+      <section className="card border-0 shadow-sm mb-4">
+        <div className="card-body">
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-2">
+            <div>
+              <h2 className="fs-5 fw-semibold mb-0">Desembolsos mensais</h2>
+              <small className="text-muted">Valores confirmados (situação 1) nos últimos 6 meses.</small>
+            </div>
+          </div>
+          {loadingGastos ? (
+            <div className="text-center text-muted py-4">Carregando gráfico...</div>
+          ) : erroGastos ? (
+            <div className="text-center text-muted py-4">
+              <p className="mb-1">Não foi possível carregar os dados.</p>
+              <small>Tente novamente mais tarde.</small>
+            </div>
+          ) : (
+            <GastosMensaisChart dados={gastosMensais} />
+          )}
+        </div>
+      </section>
 
       {/* Formulário para adicionar novo imóvel (apenas Editor) */}
       {canEdit && (

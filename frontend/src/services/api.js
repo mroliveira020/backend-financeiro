@@ -34,3 +34,9 @@ export async function fetchUltimosLancamentos(limit = 10) {
   const { data } = await api.get(`/dashboard/ultimos_lancamentos?limit=${limit}`);
   return data; // [{ data, descricao, valor, imovel, categoria }]
 }
+
+// Dashboard geral: gastos mensais por imóvel (para gráficos)
+export async function fetchGastosMensais(meses = 6) {
+  const { data } = await api.get(`/dashboard/gastos-mensais?meses=${meses}`);
+  return data;
+}
