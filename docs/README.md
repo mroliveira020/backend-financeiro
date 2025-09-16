@@ -34,8 +34,8 @@
   - Opcional: `bash scripts/install-dev-command.sh` e depois `financeiro-dev`
 - Variáveis:
   - Backend (`backend/.env`): `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_PORT` (padrão 5432)
-    - Flags: `APP_ENV` (development|production), `READ_ONLY` (true|false), `ENABLE_SQL_ENDPOINT` (true|false), `ALLOWED_ORIGINS` (origens separadas por vírgula), `EDITOR_TOKEN` (opcional), `ADMIN_TOKEN` (opcional para `/sql`).
-    - Rate limiting: `RATE_LIMIT_STORAGE_URI` (ex.: `memory://` ou `redis://...`), `RATE_LIMIT_EDIT` (ex.: `30/minute`), `RATE_LIMIT_ADMIN` (ex.: `10/minute`), `RATE_LIMIT_GLOBAL` (opcional, ex.: `300/minute`), `TRUST_PROXY` (true em produção no Render).
+    - Flags: `APP_ENV` (development|production), `READ_ONLY` (true|false), `ENABLE_SQL_ENDPOINT` (true|false), `ENABLE_SEARCH_API` (true|false), `ALLOWED_ORIGINS` (origens separadas por vírgula), `EDITOR_TOKEN` (opcional), `ADMIN_TOKEN` (opcional para `/sql`).
+    - Rate limiting: `RATE_LIMIT_STORAGE_URI` (ex.: `memory://` ou `redis://...`), `RATE_LIMIT_EDIT` (ex.: `30/minute`), `RATE_LIMIT_ADMIN` (ex.: `10/minute`), `RATE_LIMIT_SEARCH` (ex.: `60/minute`), `RATE_LIMIT_GLOBAL` (opcional, ex.: `300/minute`), `TRUST_PROXY` (true em produção no Render).
     - GPT Write: `ENABLE_GPT_WRITE` (true|false), `GPT_TOKEN` (token do agente), `RATE_LIMIT_GPT_WRITE` (ex.: `20/minute`).
   - Frontend: `frontend/.env` (de `.env.example`) com `VITE_API_URL` (ex.: `http://127.0.0.1:5000`)
 - Portas: API `http://127.0.0.1:5000`, Vite `http://127.0.0.1:5173`
@@ -58,19 +58,20 @@ Observações:
 
 ### Integração GPT — Inclusão de Transações (Pagamentos)
 
-- Objetivo: permitir que o agente GPT insira pagamentos como lançamentos na API, com segurança e validação.
-- Proposta de endpoint (a ser implementado): `POST /gpt/lancamentos`
-  - Auth: header `X-GPT-TOKEN: <token>` (variável `GPT_TOKEN` no backend) e rate limit dedicado.
-  - Idempotência: header `Idempotency-Key: <uuid>` para evitar duplicatas.
+- Objetivo: permitir que o agente GPT insira pagamentos como lançamentos na API, com validações server-side e rate limiting.
+- Endpoint implementado: `POST /gpt/lancamentos` (`backend/gpt.py`), disponível no GPT Backend (`https://gpt-backend-hg4w.onrender.com`).
+  - Auth: header `X-GPT-TOKEN: <token>` (variável `GPT_TOKEN`) e limiter dedicado (`RATE_LIMIT_GPT_WRITE`).
+  - Idempotência: header obrigatório `Idempotency-Key: <uuid>`; requisições repetidas retornam 409.
   - Body JSON:
-    - `data` ("DD/MM/AAAA" ou "YYYY-MM-DD"), `descricao` (string), `valor` (number),
-    - `id_imovel` (int), `id_categoria` (int), `id_situacao` (int, ex.: 1=efetivado).
-  - Respostas:
-    - 201 `{ id, ... }` ao criar; 400 validação; 401/403 auth; 409 idempotência; 429 limite.
-- Confirmações pelo agente (recomendado):
-  - Antes de enviar, o agente deve confirmar imóvel, categoria, data, valor e descrição.
-  - Para descobrir IDs, usar `GET /imoveis` e `GET /categorias` (ou endpoints de busca futuros).
-- Exemplo cURL (conceitual):
+    - `data` ("DD/MM/AAAA" ou "YYYY-MM-DD"), `descricao` (string não vazia), `valor` (number),
+    - `id_imovel` (int), `id_categoria` (int), `id_situacao` (int, ex.: 1 = efetivado).
+  - Respostas: 201 `{ id, ... }` ao criar; 400 validação; 401/403 auth; 409 idempotência; 429 limite.
+- Descoberta de IDs para o agente (Search API):
+  - `GET /imoveis/search?q=<texto>&limit=10&offset=0`
+  - `GET /categorias/search?q=<texto>&limit=10&offset=0`
+  - Ambas as rotas respeitam `RATE_LIMIT_SEARCH` e aceitam chamadas vazias (q="") para listar os mais recentes.
+- Confirmações pelo agente (obrigatório): antes de enviar o POST, confirmar com o usuário imóvel, categoria, data, descrição, valor (positivo/negativo) e situação.
+- Exemplo cURL:
   - `curl -X POST "$API/gpt/lancamentos" -H "Content-Type: application/json" -H "X-GPT-TOKEN: $GPT_TOKEN" -H "Idempotency-Key: $UUID" -d '{"data":"2025-03-01","descricao":"Pagamento luz","valor":123.45,"id_imovel":5,"id_categoria":12,"id_situacao":1}'`
 
 ## Deploy (Render)
@@ -122,25 +123,36 @@ Observações:
 
 ## Endpoints Principais (UI)
 
+- Healthcheck
+  - GET `/healthz` — monitoração simples para Render/Uptime — `backend/app.py:77`.
 - Imóveis
-  - GET `/imoveis` — lista (com total de lançamentos por imóvel) — `backend/app.py:33`.
-  - POST `/imoveis` — cria — `backend/app.py:37`.
-  - GET `/imoveis/:id` — detalha — `backend/app.py:42`.
-  - PATCH `/imoveis/:id` — atualiza campos diversos — `backend/app.py:49`.
-  - DELETE `/imoveis/:id` — remove — `backend/app.py:83`.
+  - GET `/imoveis` — lista com total agregado — `backend/app.py:161`.
+  - POST `/imoveis` — cria registro (token de editor) — `backend/app.py:165`.
+  - GET `/imoveis/:id` — detalha dados cadastrais — `backend/app.py:172`.
+  - PATCH `/imoveis/:id` — atualiza campos cadastrais — `backend/app.py:179`.
+  - DELETE `/imoveis/:id` — remove imóvel — `backend/app.py:215`.
 - Categorias
-  - GET/POST/DELETE `/categorias` — `backend/app.py:91`, `backend/app.py:95`, `backend/app.py:100`.
+  - GET `/categorias` — lista categorias — `backend/app.py:225`.
+  - POST `/categorias` — cria categoria (editor) — `backend/app.py:229`.
+  - DELETE `/categorias/:id` — remove (editor) — `backend/app.py:236`.
 - Lançamentos (Dashboard)
-  - GET `/dashboard/lancamentos/completos/:id_imovel` — `backend/dashboard/routes.py:26`.
-  - GET `/dashboard/lancamentos/incompletos/:id_imovel` — `backend/dashboard/routes.py:13`.
-  - PATCH `/dashboard/lancamentos/:id_lancamento` — `backend/dashboard/routes.py:81`.
-  - DELETE `/dashboard/lancamentos/:id_lancamento` — `backend/dashboard/routes.py:60`.
-  - POST `/dashboard/lancamentos/lote` — insere lista — `backend/dashboard/routes.py:39`.
+  - GET `/dashboard/lancamentos/incompletos/:id_imovel` — `backend/dashboard/routes.py:18`.
+  - GET `/dashboard/lancamentos/completos/:id_imovel` — `backend/dashboard/routes.py:31`.
+  - POST `/dashboard/lancamentos/lote` — insere lista (editor) — `backend/dashboard/routes.py:44`.
+  - PATCH `/dashboard/lancamentos/:id_lancamento` — altera lançamento — `backend/dashboard/routes.py:96`.
+  - DELETE `/dashboard/lancamentos/:id_lancamento` — exclui lançamento — `backend/dashboard/routes.py:73`.
 - Resumo e Orçamentos
-  - GET `/dashboard/resumo-financeiro/:id_imovel` — `backend/app.py:129`.
-  - GET/POST `/orcamentos/:id_imovel` — `backend/app.py:152`, `backend/app.py:157`.
-- Analytics (auxiliar)
-  - POST `/sql` — SELECT-only — `backend/analytics.py`.
+  - GET `/dashboard/resumo-financeiro/:id_imovel` — resumo consolidado — `backend/app.py:256`.
+  - GET `/orcamentos/:id_imovel` — lista orçamentos — `backend/app.py:279`.
+  - POST `/orcamentos/:id_imovel` — upsert lote de orçamentos (editor) — `backend/app.py:284`.
+- Rodapé (Home)
+  - GET `/dashboard/ultima_atualizacao` — data do último lançamento confirmado — `backend/dashboard/routes.py:127`.
+  - GET `/dashboard/ultimos_lancamentos?limit=10` — últimos lançamentos confirmados — `backend/dashboard/routes.py:138`.
+- Busca auxiliar (`ENABLE_SEARCH_API=true`)
+  - GET `/imoveis/search?q=<texto>&limit=&offset=` — busca rápida — `backend/search.py:30`.
+  - GET `/categorias/search?q=<texto>&limit=&offset=` — busca rápida — `backend/search.py:66`.
+- Analytics/Admin (habilitado quando `ENABLE_SQL_ENDPOINT=true`)
+  - POST `/sql` — executor de SELECT com rate limit — `backend/analytics.py`.
 
 ## Banco de Dados (inferido)
 
@@ -152,21 +164,21 @@ Observações:
 
 ## Decisões e Comportamentos
 
-- Datas: Frontend exibe/edita em `DD/MM/AAAA`; backend converte para ISO `AAAA-MM-DD` com `converter_data()` e, no lote, faz split manual.
-- Formatação de valores: UI exibe BRL; ao salvar, converte string `1.234,56` para float com `.` decimal.
-- CORS: globalmente aberto no app; no blueprint do dashboard, restrito a `http://localhost:5173`.
-- Home ajusta alias Postgres minúsculo para `totalLancamentos` na UI.
+- Datas: frontend usa `DD/MM/AAAA`; backend converte para ISO `YYYY-MM-DD` via `converter_data()` (reutilizada em lote e GPT).
+- Valores: UI normaliza strings (`,` → `.`) antes de enviar; backend repassa floats direto ao banco.
+- CORS: controlado por `ALLOWED_ORIGINS`; em dev aceita `*`, em produção deve apontar para o domínio público.
+- READ_ONLY: bloqueia POST/PATCH/DELETE globalmente, exceto `/sql` e `/gpt/*` (permitidos mediante token).
+- Search API: opcional via `ENABLE_SEARCH_API`; paginação limitada a 50 itens e rate limit dedicado.
+- Home usa `totalLancamentos` (camelCase) derivado das colunas minúsculas do Postgres.
 
-## Observações / Problemas Identificados
+## Observações / Pontos de Atenção
 
-- POST `/lancamentos` inconsistente: `backend/app.py:112` chama `adicionar_lancamentos_em_lote(...)` passando campos avulsos; a função espera lista de objetos. Corrigir para inserção única ou remover se não for usada.
-- Incompletos sem filtro (por design): a listagem de “incompletos” é global para permitir categorização de lançamentos de vários imóveis até zerar a fila. O path contém `:id_imovel`, mas o parâmetro não é aplicado como filtro na consulta atual (`backend/models.py:248`). Documentado e aceito no fluxo atual; opcionalmente, adicionar filtro via query param em futura evolução.
-- Datas em lote: padronização para ISO feita via `converter_data()` em `backend/models.py`.
-- CORS divergente: blueprint aceita `http://localhost:5173`, mas o frontend pode rodar em `http://127.0.0.1:5173`; hoje encobre devido ao CORS global `*`, mas em produção precisa alinhar origem.
-- URLs base no frontend: centralizadas em `VITE_API_URL` via cliente Axios.
-- Log ruidoso: `print(app.url_map)` em `backend/app.py:187`; condicionar ao modo debug.
-- Endpoint `/analytics/sql`: mesmo com filtro de SELECT, expõe consulta arbitrária; restringir/retirar em produção.
-- Use `dev.sh` na raiz para subir backend e frontend em dev; o script garante `.env` do front e instala dependências quando necessário.
+- `GET /lancamentos` permanece acessível sem paginação; manter como endpoint administrativo ou restringir junto às rotas do dashboard.
+- A lista de “incompletos” continua global (ignora `id_imovel`) para que a fila possa ser trabalhada de forma cruzada; comportamento descrito na UI.
+- `/sql` e `/analise/*` só devem ficar ativos no GPT Backend (`ENABLE_SQL_ENDPOINT=true`); no Site Backend, defina `false` para evitar exposição.
+- A idempotência do GPT (memória in-memory em `backend/gpt.py`) se perde a cada restart; Plano 9 cobre a migração para Redis/Postgres.
+- O logger de auditoria imprime resumo do corpo no stdout; sanitização extra (tokens/PII) segue listado no Plano 6.6.
+- Scripts `dev.sh` e `scripts/install-dev-command.sh` aceleram o setup local (backend + frontend simultâneos).
 
 ## Rotas Em Uso (UI atual)
 
@@ -176,20 +188,24 @@ Com base nas páginas Home e Dashboard, as rotas efetivamente utilizadas pelo fr
 - Categorias: `GET /categorias` (para popular selects).
 - Dashboard/Lançamentos: `GET /dashboard/lancamentos/incompletos/:id_imovel`, `GET /dashboard/lancamentos/completos/:id_imovel`, `PATCH /dashboard/lancamentos/:id_lancamento`, `DELETE /dashboard/lancamentos/:id_lancamento`, `POST /dashboard/lancamentos/lote`.
 - Resumo/Orçamentos: `GET /dashboard/resumo-financeiro/:id_imovel`, `GET /orcamentos/:id_imovel`, `POST /orcamentos/:id_imovel`.
+- Rodapé/Home: `GET /dashboard/ultima_atualizacao`, `GET /dashboard/ultimos_lancamentos`.
 
 ## Rotas Não Utilizadas pela UI (atual)
 
-- `GET /lancamentos` e `POST /lancamentos` (endpoints genéricos; a UI usa as rotas do blueprint do dashboard).
+- `GET /lancamentos` (endpoint genérico; a UI usa as rotas do blueprint do dashboard).
 - `POST /categorias` e `DELETE /categorias` (não há telas de gestão de categorias na UI atual).
 - `GET /dashboard/orcamento_execucao/:id_imovel` (alias alternativo do resumo não referenciado no front).
 - `GET /openapi.json` (útil para documentação, não consumido pela UI).
+- Search API (`/imoveis/search`, `/categorias/search`) — usada pelo agente GPT para confirmação de IDs.
 
-Sugestão: manter, documentar como “suporte/administrativo” ou desabilitar em produção se não forem necessários. A rota `POST /lancamentos` está inconsistente com a função de lote e merece correção ou remoção.
+Sugestão: manter, documentar como “suporte/administrativo” ou desabilitar em produção se não forem necessários. O endpoint genérico `POST /lancamentos` foi removido; mantenha o `GET /lancamentos` disponível apenas para uso administrativo (se necessário).
 
 ## Endpoints para ChatGPT (sem frontend)
 
 Existem rotas pensadas para consumo programático (ex.: integrações e consultas ad‑hoc), sem página de frontend associada:
 
+- `GET /imoveis/search` e `GET /categorias/search` — busca paginada para confirmar IDs (rate limit).
+- `POST /gpt/lancamentos` — criação de lançamentos via agente (token + idempotência).
 - `GET /analise/lancamentos` — retorna lançamentos com joins (para análises).
 - `POST /sql` — executor de SELECT “seguro”.
 
@@ -199,7 +215,7 @@ Melhorias propostas para esses endpoints:
 
 - Restringir a disponibilidade por ambiente: habilitar apenas em dev/staging via `FLASK_ENV`/flag.
 - Autenticação: exigir token de serviço (header) ou IP allowlist. Evitar exposição pública.
-- `/sql`: além de permitir apenas SELECT, validar palavras‑chave, bloquear `;`, `--`, funções perigosas, e limitar linhas/tempo. Em produção, preferir desativar.
+- `/sql`: além de permitir apenas SELECT, validar palavras‑chave, bloquear `;`, `--`, funções perigosas, e limitar linhas/tempo. Em produção, preferir desativar no site-backend.
 - CORS dedicado: origem restrita e distinta da UI para consumo por ferramentas específicas.
 - Observabilidade: log estruturado e auditoria de queries executadas (com truncamento de payload).
 

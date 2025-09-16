@@ -336,6 +336,7 @@ def listar_ultimos_lancamentos_confirmados(limit=10):
         JOIN categorias c ON c.id = l.id_categoria
         WHERE l.id_situacao = 1
           AND l.data <= CURRENT_DATE
+          AND l.id_categoria <> 0
         ORDER BY l.data DESC, l.id DESC
         LIMIT %s
         """,

@@ -33,7 +33,7 @@
 9.3 [ ] Postgres: criar `gpt_idempotency(key primary key, created_at)`; usar `INSERT ... ON CONFLICT DO NOTHING` em transação; job de limpeza.
 9.4 [ ] Parametrizar TTL (1–24h) e expor métricas (contagem de 409/2xx).
 9.5 [ ] Documentar decisão e atualizar README/variáveis (`REDIS_URL` ou migração SQL).
-8.10 [ ] (Não será implementado no backend) Extração de PDF: manter processamento nativo pelo GPT (fora de escopo do projeto). Documentado nas instruções do agente.
+8.10 [x] (Não será implementado no backend) Extração de PDF: manter processamento nativo pelo GPT (fora de escopo do projeto), documentado nas instruções do agente.
 
 3. Deploy (Render)
 3.0 [x] Criar blueprint `render.yaml` (site-backend, gpt-backend, frontend) com envs padrão.
@@ -73,7 +73,7 @@
 7.2 [x] Centralizar cliente HTTP e VITE_API_URL no front.
 7.3 [x] README reorganizado e detalhado; plano separado.
 7.4 [x] Atualizar `openapi.json` com endpoints novos (GPT `/gpt/lancamentos`, buscas `/imoveis/search`, `/categorias/search`, `/healthz`).
-7.5 [ ] Adicionar exemplo de “conversa modelo” nas Instruções do Agente (perguntas → confirmações → POST), incluindo tratamento de 400/409/429.
+7.5 [x] Adicionar exemplo de “conversa modelo” nas Instruções do Agente (perguntas → confirmações → POST), incluindo tratamento de 400/409/429.
 
 ## Roadmap do Site — Próximas Iterações
 
@@ -97,13 +97,13 @@
    2.4 [ ] Desempenho de busca/listas
        2.4.1 [ ] Índices recomendados: `CREATE INDEX ON imoveis (lower(nome));` e `CREATE INDEX ON categorias (lower(categoria));` (adiado)
        2.4.2 [ ] Revisar paginação padrão e limites nas rotas de listagem (adiado)
-   2.5 [ ] Rodapé: Data de atualização + últimos 10 lançamentos
-       2.5.1 [ ] Backend: endpoint para data de atualização (último lançamento confirmado com `id_situacao=1` e `data <= hoje`)
-       2.5.2 [ ] Backend: endpoint para listar últimos 10 lançamentos globais (ordem desc por `data`, independentemente do imóvel)
-       2.5.3 [ ] Frontend: exibir data no rodapé da Home; mostrar estado de carregando/erro
-       2.5.4 [ ] Frontend: ação de clique no rodapé abrindo modal/lista com os 10 lançamentos (data, descrição, valor, imóvel, categoria)
-       2.5.5 [ ] Timezone/formatos: garantir comparações por data em UTC/`current_date` e exibir `DD/MM/AAAA`
-       2.5.6 [ ] Segurança/CORS: endpoints de leitura pública, respeitando `ALLOWED_ORIGINS`
+   2.5 [x] Rodapé: Data de atualização + últimos 10 lançamentos
+       2.5.1 [x] Backend: endpoint para data de atualização (último lançamento confirmado com `id_situacao=1` e `data <= hoje`)
+       2.5.2 [x] Backend: endpoint para listar últimos 10 lançamentos globais (ordem desc por `data`, independentemente do imóvel)
+       2.5.3 [x] Frontend: exibir data no rodapé da Home; mostrar estado de carregando/erro
+       2.5.4 [x] Frontend: ação de clique no rodapé abrindo modal/lista com os 10 lançamentos (data, descrição, valor, imóvel, categoria)
+       2.5.5 [x] Timezone/formatos: garantir comparações por data em UTC/`current_date` e exibir `DD/MM/AAAA`
+       2.5.6 [x] Segurança/CORS: endpoints de leitura pública, respeitando `ALLOWED_ORIGINS`
 
 3. Próximas (médio prazo)
    3.1 [ ] Segurança (Fase 2 — login por usuário)
