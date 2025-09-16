@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 import DadosCadastrais from "../components/dadosCadastrais/DadosCadastrais";
@@ -12,7 +12,12 @@ function Dashboard() {
 
   return (
     <div className="container mt-4">
-     
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1 className="h4 mb-0">Dashboard</h1>
+        <Link to="/" className="btn btn-outline-secondary">
+          ← Voltar para a Home
+        </Link>
+      </div>
 
       {/* PRIMEIRA SEÇÃO - DADOS CADASTRAIS E RESUMO FINANCEIRO */}
       <div className="row mb-4">
