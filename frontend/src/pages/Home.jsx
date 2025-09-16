@@ -134,13 +134,13 @@ function Home() {
             <div key={imovel.id} className="col-12 col-md-6 col-lg-4 d-flex">
               <div className="card border-0 shadow-sm w-100 property-card">
                 <div className="property-card__header">
-                  <div className="d-flex align-items-center text-white">
+                  <div className="d-flex align-items-center text-body">
                     <img
                       src="/img/dashboard.png"
                       alt="Dashboard"
                       className="property-card__icon"
                     />
-                    <Link to={`/dashboard/${imovel.id}`} className="property-card__title text-white text-decoration-none">
+                    <Link to={`/dashboard/${imovel.id}`} className="property-card__title text-decoration-none">
                       {imovel.nome}
                     </Link>
                   </div>

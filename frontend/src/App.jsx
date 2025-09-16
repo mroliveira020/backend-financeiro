@@ -1,17 +1,16 @@
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
-import EditorBar from "./components/EditorBar";
+import AppLayout from "./components/layout/AppLayout";
 
 function App() {
   return (
-    <>
-      <EditorBar />
+    <AppLayout>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/dashboard/:id" element={<Dashboard />} />
       </Routes>
-    </>
+    </AppLayout>
   );
 }
 
