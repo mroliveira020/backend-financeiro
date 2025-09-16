@@ -364,7 +364,7 @@ def listar_ultimos_lancamentos_confirmados(limit=10):
     return itens
 
 
-def listar_totais_mensais_por_imovel(meses=6):
+def listar_totais_mensais_por_imovel(meses=12):
     """Retorna os totais desembolsados por mês (lancamentos confirmados), agrupados por imóvel."""
 
     try:
