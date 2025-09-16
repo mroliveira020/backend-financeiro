@@ -15,6 +15,8 @@ import GastosMensaisChart from "../components/GastosMensaisChart";
 
 function Home() {
   const [imoveis, setImoveis] = useState([]);
+  const [loadingImoveis, setLoadingImoveis] = useState(true);
+  const [erroImoveis, setErroImoveis] = useState(false);
   const [newImovel, setNewImovel] = useState({ nome: "", vendido: false });
   const [ultimaAtualizacao, setUltimaAtualizacao] = useState(null);
   const [showUltimos, setShowUltimos] = useState(false);
@@ -27,13 +29,21 @@ function Home() {
   const canEdit = !!editorToken;
 
   useEffect(() => {
-    fetchImoveis().then((data) => {
-      const imoveisCorrigidos = data.map((imovel) => ({
-        ...imovel,
-        totalLancamentos: imovel.totallancamentos,
-      }));
-      setImoveis(imoveisCorrigidos);
-    });
+    setLoadingImoveis(true);
+    setErroImoveis(false);
+    fetchImoveis()
+      .then((data) => {
+        const imoveisCorrigidos = data.map((imovel) => ({
+          ...imovel,
+          totalLancamentos: imovel.totallancamentos,
+        }));
+        setImoveis(imoveisCorrigidos);
+      })
+      .catch(() => {
+        setErroImoveis(true);
+        setImoveis([]);
+      })
+      .finally(() => setLoadingImoveis(false));
 
     fetchUltimaAtualizacao()
       .then((res) => setUltimaAtualizacao(res?.data || null))
@@ -126,8 +136,14 @@ function Home() {
       )}
 
       {/* Lista de imóveis */}
-      {imoveis.length === 0 ? (
+      {loadingImoveis ? (
         <p className="fs-6 text-muted">Carregando imóveis...</p>
+      ) : erroImoveis ? (
+        <div className="alert alert-warning" role="alert">
+          Não foi possível carregar a lista de imóveis. Verifique sua conexão ou tente novamente mais tarde.
+        </div>
+      ) : imoveis.length === 0 ? (
+        <p className="fs-6 text-muted">Nenhum imóvel cadastrado ainda.</p>
       ) : (
         <div className="row g-4">
           {imoveis.map((imovel) => (
