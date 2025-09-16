@@ -3,16 +3,16 @@ import { Bar } from "react-chartjs-2";
 import "chart.js/auto";
 
 const palette = [
-  "#1f77b4",
-  "#ff7f0e",
-  "#2ca02c",
-  "#d62728",
-  "#9467bd",
-  "#8c564b",
-  "#e377c2",
-  "#7f7f7f",
-  "#bcbd22",
-  "#17becf",
+  "rgba(31, 119, 180, 0.65)",
+  "rgba(255, 127, 14, 0.65)",
+  "rgba(44, 160, 44, 0.65)",
+  "rgba(214, 39, 40, 0.65)",
+  "rgba(148, 103, 189, 0.65)",
+  "rgba(140, 86, 75, 0.65)",
+  "rgba(227, 119, 194, 0.65)",
+  "rgba(127, 127, 127, 0.65)",
+  "rgba(188, 189, 34, 0.65)",
+  "rgba(23, 190, 207, 0.65)",
 ];
 
 const formatter = new Intl.DateTimeFormat("pt-BR", {
@@ -61,8 +61,10 @@ export default function GastosMensaisChart({ dados = [] }) {
     const datasets = Array.from(gruposPorImovel.values()).map((dataset, index) => ({
       ...dataset,
       backgroundColor: palette[index % palette.length],
+      borderColor: palette[index % palette.length].replace("0.65", "0.9"),
       stack: "desembolsos",
       borderRadius: 4,
+      borderWidth: 1,
     }));
 
     return {
