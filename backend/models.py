@@ -377,24 +377,33 @@ def listar_totais_mensais_por_imovel(meses=6):
 
     conn, cur = conectar()
     try:
-        cur.execute(
-            """
-            SELECT
-                DATE_TRUNC('month', l.data) AS mes,
-                i.id AS id_imovel,
-                i.nome AS nome_imovel,
-                SUM(l.valor) AS total
-            FROM lancamentos l
-            JOIN imoveis i ON i.id = l.id_imovel
-            WHERE l.id_situacao = 1
-              AND l.ativo = TRUE
-              AND l.data >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month' * %s
-              and l.valor>0
-            GROUP BY mes, i.id, i.nome
-            ORDER BY mes ASC, i.nome ASC
-            """,
-            (intervalo,),
-        )
+        base_sql = [
+            "SELECT",
+            "    DATE_TRUNC('month', l.data) AS mes,",
+            "    i.id AS id_imovel,",
+            "    i.nome AS nome_imovel,",
+            "    SUM(l.valor) AS total",
+            "FROM lancamentos l",
+            "JOIN imoveis i ON i.id = l.id_imovel",
+            "WHERE l.id_situacao = 1",
+            "  AND (l.ativo IS DISTINCT FROM FALSE)",
+            "  AND (l.id_categoria IS DISTINCT FROM 15)",
+        ]
+
+        params = []
+
+        if intervalo > 0:
+            base_sql.append(
+                "  AND l.data >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month' * %s"
+            )
+            params.append(intervalo)
+
+        base_sql.append("GROUP BY mes, i.id, i.nome")
+        base_sql.append("ORDER BY mes ASC, i.nome ASC")
+
+        sql = "\n".join(base_sql)
+
+        cur.execute(sql, tuple(params))
         rows = cur.fetchall()
         resultados = []
         for mes, id_imovel, nome_imovel, total in rows:
