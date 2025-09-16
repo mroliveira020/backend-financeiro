@@ -13,7 +13,7 @@
 
 2. Continuidade do Agente GPT (sem interrupção)
 2.1 [x] Manter serviço “GPT Backend” com `ENABLE_SQL_ENDPOINT=true` e `READ_ONLY=true` (DB user somente leitura) até habilitarmos a escrita segura.
-2.2 [ ] (Opcional) Proteger `/sql` com header `X-ADMIN-TOKEN` e configurar o Agente GPT para enviá-lo.
+2.2 [x] (Opcional) Proteger `/sql` com header `X-ADMIN-TOKEN` e configurar o Agente GPT para enviá-lo.
 2.3 [x] Garantir que o front aponte para o “Site Backend” e o GPT continue usando o backend atual.
 
 8. Integração GPT — Inclusão de Transações (pagamentos)
@@ -57,7 +57,7 @@
 5.3 [ ] Frontend: página de login, contexto de auth e guarda de ações.
 
 6. Observabilidade e operação
-6.1 [ ] Logs estruturados; healthcheck `/healthz`.
+6.1 [x] Logs estruturados (auditoria básica em JSON nas escritas).
 6.2 [ ] Usuário de banco com menor privilégio (principalmente no GPT Backend).
 6.3 [ ] Política de rotação do `EDITOR_TOKEN` (mensal ou sob incidente) e revogação rápida.
 6.4 [ ] Padronizar schema de erro (JSON) para 4xx/5xx com campos: `code`, `message`, `details`.
@@ -104,7 +104,7 @@
        2.5.4 [x] Frontend: ação de clique no rodapé abrindo modal/lista com os 10 lançamentos (data, descrição, valor, imóvel, categoria)
        2.5.5 [x] Timezone/formatos: garantir comparações por data em UTC/`current_date` e exibir `DD/MM/AAAA`
        2.5.6 [x] Segurança/CORS: endpoints de leitura pública, respeitando `ALLOWED_ORIGINS`
-   2.6 [ ] Gráfico financeiro
+2.6 [x] Gráfico financeiro
        2.6.1 [x] Endpoint `/dashboard/gastos-mensais` com limite configurável (padrão 6 meses + filtro `excluir`)
        2.6.2 [x] Frontend: gráfico configurável (meses/categorias) com Chart.js, cores translúcidas e preferências persistidas
    2.7 [x] Home — cartão do imóvel com visão por grupos

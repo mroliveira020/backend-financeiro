@@ -171,7 +171,7 @@ Observações:
 - CORS: controlado por `ALLOWED_ORIGINS`; em dev aceita `*`, em produção deve apontar para o domínio público.
 - READ_ONLY: bloqueia POST/PATCH/DELETE globalmente, exceto `/sql` e `/gpt/*` (permitidos mediante token).
 - Search API: opcional via `ENABLE_SEARCH_API`; paginação limitada a 50 itens e rate limit dedicado.
-- Home usa `totalLancamentos` (camelCase) derivado das colunas minúsculas do Postgres.
+- Home: usa `totalInvestido`, `grupos` e período (`periodo_inicio`/`periodo_fim`) retornados por `GET /imoveis`.
 
 ## Observações / Pontos de Atenção
 
