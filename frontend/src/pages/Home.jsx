@@ -440,86 +440,87 @@ function Home() {
             const periodo = formatarPeriodo(imovel.periodoInicio, imovel.periodoFim);
             return (
               <div key={imovel.id} className="col-12 col-md-6 col-lg-4 d-flex">
-              <div className="card border-0 shadow-sm w-100 property-card">
-                <div className="property-card__header">
-                  <div className="d-flex align-items-center text-body">
-                    <img
-                      src="/img/dashboard.png"
-                      alt="Dashboard"
-                      className="property-card__icon"
-                    />
-                    <Link to={`/dashboard/${imovel.id}`} className="property-card__title text-decoration-none">
-                      {imovel.nome}
-                    </Link>
-                  </div>
-                  <span
-                    className={`property-card__status ${imovel.vendido ? "property-card__status--sold" : "property-card__status--available"}`}
-                  >
-                    {imovel.vendido ? "Vendido" : "Disponível"}
-                  </span>
-                </div>
-
-                <div className="property-card__body">
-                  <div className="property-card__summary">
-                    <div>
-                      <p
-                        className={`property-card__amount ${totalValor >= 0 ? "property-card__amount--positive" : "property-card__amount--negative"}`}
-                      >
-                        {totalValor.toLocaleString("pt-BR", {
-                          style: "currency",
-                          currency: "BRL",
-                        })}
-                      </p>
-                      <p className="property-card__label">Total investido</p>
-                      <p className="property-card__periodo">{periodo || "Sem período disponível"}</p>
+                <div className="card border-0 shadow-sm w-100 property-card">
+                  <div className="property-card__header">
+                    <div className="d-flex align-items-center text-body">
+                      <img
+                        src="/img/dashboard.png"
+                        alt="Dashboard"
+                        className="property-card__icon"
+                      />
+                      <Link to={`/dashboard/${imovel.id}`} className="property-card__title text-decoration-none">
+                        {imovel.nome}
+                      </Link>
                     </div>
-                    <div className="property-card__chart">
-                      <ImovelGrupoPieChart grupos={imovel.grupos} />
-                    </div>
-                  </div>
-
-                  <div className="property-card__actions">
-                    <img
-                      src="/img/google-maps.png"
-                      alt="Ver no mapa"
-                      title="Ver no mapa"
-                      onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(imovel.nome)}`, "_blank")}
-                    />
-                    {canEdit && (
-                      <>
-                        <img
-                          src="/img/editar.png"
-                          alt="Editar"
-                          title="Editar imóvel"
-                          onClick={() => console.log("Editar imóvel:", imovel.id)}
-                        />
-                        {totalValor === 0 && (
-                          <img
-                            src="/img/excluir.png"
-                            alt="Excluir"
-                            title="Excluir imóvel"
-                            onClick={() => deleteImovel(imovel.id)}
-                          />
-                        )}
-                      </>
-                    )}
-                    <img
-                      src={imovel.vendido ? "/img/casa_indisponivel.png" : "/img/casa_disponivel.png"}
-                      alt={imovel.vendido ? "Vendido" : "Disponível"}
-                      title={imovel.vendido ? "Vendido" : "Disponível"}
-                    />
-                  </div>
-
-                  <div className="property-card__cta">
-                    <Link
-                      to={`/dashboard/${imovel.id}`}
-                      className="btn btn-outline-primary btn-sm"
+                    <span
+                      className={`property-card__status ${imovel.vendido ? "property-card__status--sold" : "property-card__status--available"}`}
                     >
-                      Abrir dashboard
-                    </Link>
+                      {imovel.vendido ? "Vendido" : "Disponível"}
+                    </span>
+                  </div>
+
+                  <div className="property-card__body">
+                    <div className="property-card__summary">
+                      <div className="property-card__summary-info">
+                        <p
+                          className={`property-card__amount ${totalValor >= 0 ? "property-card__amount--positive" : "property-card__amount--negative"}`}
+                        >
+                          {totalValor.toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })}
+                        </p>
+                        <p className="property-card__label">Total investido</p>
+                        <p className="property-card__periodo">{periodo || "Sem período disponível"}</p>
+                      </div>
+                      <div className="property-card__summary-aside">
+                        <ImovelGrupoPieChart grupos={imovel.grupos} />
+                      </div>
+                    </div>
+
+                    <div className="property-card__footer">
+                      <div className="property-card__actions">
+                        <img
+                          src="/img/google-maps.png"
+                          alt="Ver no mapa"
+                          title="Ver no mapa"
+                          onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(imovel.nome)}`, "_blank")}
+                        />
+                        {canEdit && (
+                          <>
+                            <img
+                              src="/img/editar.png"
+                              alt="Editar"
+                              title="Editar imóvel"
+                              onClick={() => console.log("Editar imóvel:", imovel.id)}
+                            />
+                            {totalValor === 0 && (
+                              <img
+                                src="/img/excluir.png"
+                                alt="Excluir"
+                                title="Excluir imóvel"
+                                onClick={() => deleteImovel(imovel.id)}
+                              />
+                            )}
+                          </>
+                        )}
+                        <img
+                          src={imovel.vendido ? "/img/casa_indisponivel.png" : "/img/casa_disponivel.png"}
+                          alt={imovel.vendido ? "Vendido" : "Disponível"}
+                          title={imovel.vendido ? "Vendido" : "Disponível"}
+                        />
+                      </div>
+
+                      <Link
+                        to={`/dashboard/${imovel.id}`}
+                        className="property-card__cta-icon"
+                        aria-label="Abrir dashboard"
+                      >
+                        <span aria-hidden="true">↗</span>
+                      </Link>
+                    </div>
                   </div>
                 </div>
-              </div>
               </div>
             );
           })}
