@@ -13,9 +13,48 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import useEditorToken from "../hooks/useEditorToken";
 import "./Home.css";
 import GastosMensaisChart from "../components/GastosMensaisChart";
+import ImovelGrupoPieChart from "../components/ImovelGrupoPieChart";
 
 const GRAFICO_PREF_KEY = "financeiro:gastos-pref";
 const DEFAULT_CHART_PREF = { meses: 6, excluir: [8, 15, 18] };
+const MES_ANO_FORMATTER = new Intl.DateTimeFormat("pt-BR", {
+  month: "2-digit",
+  year: "numeric",
+});
+
+const normalizarGrupos = (raw) => {
+  if (!raw) {
+    return [];
+  }
+  if (Array.isArray(raw)) {
+    return raw;
+  }
+  if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+};
+
+const formatarPeriodo = (inicio, fim) => {
+  if (!inicio || !fim) {
+    return null;
+  }
+  try {
+    const inicioData = new Date(inicio);
+    const fimData = new Date(fim);
+    if (Number.isNaN(inicioData.getTime()) || Number.isNaN(fimData.getTime())) {
+      return null;
+    }
+    return `Período ${MES_ANO_FORMATTER.format(inicioData)} a ${MES_ANO_FORMATTER.format(fimData)}`;
+  } catch {
+    return null;
+  }
+};
 
 function Home() {
   const [imoveis, setImoveis] = useState([]);
@@ -73,7 +112,7 @@ function Home() {
           meses: mesesValidos,
           excluir: Array.from(new Set(excluir)),
         };
-      } catch (error) {
+      } catch {
         storedPref = {
           meses: DEFAULT_CHART_PREF.meses,
           excluir: [...DEFAULT_CHART_PREF.excluir],
@@ -90,11 +129,20 @@ function Home() {
     setErroImoveis(false);
     fetchImoveis()
       .then((data) => {
-        const imoveisCorrigidos = data.map((imovel) => ({
-          ...imovel,
-          totalLancamentos: imovel.totallancamentos,
-        }));
-        setImoveis(imoveisCorrigidos);
+        const imoveisNormalizados = (data || []).map((imovel) => {
+          const totalInvestidoRaw =
+            imovel.total_investido ?? imovel.totalInvestido ?? imovel.totallancamentos ?? 0;
+          const periodoInicio = imovel.periodo_inicio ?? null;
+          const periodoFim = imovel.periodo_fim ?? null;
+          return {
+            ...imovel,
+            totalInvestido: Number(totalInvestidoRaw) || 0,
+            grupos: normalizarGrupos(imovel.grupos),
+            periodoInicio,
+            periodoFim,
+          };
+        });
+        setImoveis(imoveisNormalizados);
       })
       .catch(() => {
         setErroImoveis(true);
@@ -137,7 +185,16 @@ function Home() {
 
     try {
       const novoImovel = await addImovel(newImovel);
-      setImoveis((prevImoveis) => [...prevImoveis, { ...novoImovel, totalLancamentos: 0 }]);
+      setImoveis((prevImoveis) => [
+        ...prevImoveis,
+        {
+          ...novoImovel,
+          totalInvestido: 0,
+          grupos: [],
+          periodoInicio: null,
+          periodoFim: null,
+        },
+      ]);
       setNewImovel({ nome: "", vendido: false }); // Limpa o formulário após cadastro
     } catch (error) {
       console.error("Erro ao cadastrar imóvel:", error);
@@ -378,8 +435,11 @@ function Home() {
         <p className="fs-6 text-muted">Nenhum imóvel cadastrado ainda.</p>
       ) : (
         <div className="row g-4">
-          {imoveis.map((imovel) => (
-            <div key={imovel.id} className="col-12 col-md-6 col-lg-4 d-flex">
+          {imoveis.map((imovel) => {
+            const totalValor = Number(imovel.totalInvestido ?? 0);
+            const periodo = formatarPeriodo(imovel.periodoInicio, imovel.periodoFim);
+            return (
+              <div key={imovel.id} className="col-12 col-md-6 col-lg-4 d-flex">
               <div className="card border-0 shadow-sm w-100 property-card">
                 <div className="property-card__header">
                   <div className="d-flex align-items-center text-body">
@@ -400,15 +460,23 @@ function Home() {
                 </div>
 
                 <div className="property-card__body">
-                  <p
-                    className={`property-card__amount ${Number(imovel.totalLancamentos ?? 0) >= 0 ? "property-card__amount--positive" : "property-card__amount--negative"}`}
-                  >
-                    {Number(imovel.totalLancamentos ?? 0).toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    })}
-                  </p>
-                  <p className="text-secondary small mb-3">Total lançado</p>
+                  <div className="property-card__summary">
+                    <div>
+                      <p
+                        className={`property-card__amount ${totalValor >= 0 ? "property-card__amount--positive" : "property-card__amount--negative"}`}
+                      >
+                        {totalValor.toLocaleString("pt-BR", {
+                          style: "currency",
+                          currency: "BRL",
+                        })}
+                      </p>
+                      <p className="property-card__label">Total investido</p>
+                      <p className="property-card__periodo">{periodo || "Sem período disponível"}</p>
+                    </div>
+                    <div className="property-card__chart">
+                      <ImovelGrupoPieChart grupos={imovel.grupos} />
+                    </div>
+                  </div>
 
                   <div className="property-card__actions">
                     <img
@@ -425,7 +493,7 @@ function Home() {
                           title="Editar imóvel"
                           onClick={() => console.log("Editar imóvel:", imovel.id)}
                         />
-                        {imovel.totalLancamentos === 0 && (
+                        {totalValor === 0 && (
                           <img
                             src="/img/excluir.png"
                             alt="Excluir"
@@ -452,8 +520,9 @@ function Home() {
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -471,7 +540,7 @@ function Home() {
             try {
               const itens = await fetchUltimosLancamentos(10);
               setUltimos(itens || []);
-            } catch (e) {
+            } catch {
               setUltimos([]);
             } finally {
               setLoadingUltimos(false);

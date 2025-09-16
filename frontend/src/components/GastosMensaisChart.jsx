@@ -1,19 +1,7 @@
 import React, { useMemo } from "react";
 import { Bar } from "react-chartjs-2";
 import "chart.js/auto";
-
-const palette = [
-  "rgba(31, 119, 180, 0.65)",
-  "rgba(255, 127, 14, 0.65)",
-  "rgba(44, 160, 44, 0.65)",
-  "rgba(214, 39, 40, 0.65)",
-  "rgba(148, 103, 189, 0.65)",
-  "rgba(140, 86, 75, 0.65)",
-  "rgba(227, 119, 194, 0.65)",
-  "rgba(127, 127, 127, 0.65)",
-  "rgba(188, 189, 34, 0.65)",
-  "rgba(23, 190, 207, 0.65)",
-];
+import palette from "../utils/chartPalette";
 
 const formatter = new Intl.DateTimeFormat("pt-BR", {
   month: "short",
@@ -26,7 +14,7 @@ function normalizarMesLabel(mesISO) {
     if (!Number.isNaN(data.getTime())) {
       return formatter.format(data).replace(" de ", "/");
     }
-  } catch (e) {
+  } catch {
     /* ignore */
   }
   return mesISO;

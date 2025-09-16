@@ -107,7 +107,11 @@
    2.6 [ ] Gráfico financeiro
        2.6.1 [x] Endpoint `/dashboard/gastos-mensais` com limite configurável (padrão 6 meses + filtro `excluir`)
        2.6.2 [x] Frontend: gráfico configurável (meses/categorias) com Chart.js, cores translúcidas e preferências persistidas
-       2.6.3 [ ] Excluir categoria de comissão (ID a confirmar) do agregado além dos IDs 8, 15 e 18
+   2.7 [x] Home — cartão do imóvel com visão por grupos
+       2.7.1 [x] Backend: expor endpoint reutilizando `docs/consultas/total_lancamentos_por_grupo.sql` para agregar `SUM(valor)` por `g.grupo` (considerar filtros `ativo`, `id_situacao=1` e exclusões 8, 15, 18)
+       2.7.2 [x] Frontend: substituir valor único pelo total investido (soma da consulta) e inserir mini gráfico de pizza com os grupos (fonte menor para acomodar o gráfico)
+       2.7.3 [x] Frontend: exibir rótulo `Período <MM/AAAA> a <MM/AAAA>` usando a primeira e a última transação confirmada do imóvel
+       2.7.4 [x] UX: ajustar layout do card (legendas, alinhamento e responsividade) garantindo contraste, legibilidade e paleta com cores translúcidas (seguindo o gráfico maior)
 
 3. Próximas (médio prazo)
    3.1 [ ] Segurança (Fase 2 — login por usuário)
