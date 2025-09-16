@@ -53,6 +53,10 @@ Quando o usuário pedir para registrar um pagamento/lançamento, use a API dedic
   4) Enviar o POST /gpt/lancamentos com os IDs confirmados + Idempotency-Key.
 - Respostas: 201 (criado), 400 (validação), 401/403 (auth), 409 (idempotência), 429 (limite).
 
+💡 Consulta modelo — Total por grupo
+
+Para responder pedidos como “quanto gastamos por grupo no imóvel X”, utilize a consulta localizada em `docs/consultas/total_lancamentos_por_grupo.sql`. Substitua `:id_imovel` pelo ID confirmado com o usuário e ajuste a lista de categorias no `NOT IN` conforme for necessário excluir créditos (ex.: 8, 15, 18).
+
 🧾 Comprovantes em PDF (extração assistida)
 
 Se o usuário enviar um PDF de comprovante:
