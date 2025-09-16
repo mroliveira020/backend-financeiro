@@ -50,7 +50,7 @@ function Home() {
       .catch(() => setUltimaAtualizacao(null));
 
     setLoadingGastos(true);
-    fetchGastosMensais(6)
+    fetchGastosMensais(12)
       .then((dados) => {
         setGastosMensais(dados || []);
         setErroGastos(false);
@@ -92,7 +92,7 @@ function Home() {
           <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-2">
             <div>
               <h2 className="fs-5 fw-semibold mb-0">Desembolsos mensais</h2>
-              <small className="text-muted">Valores confirmados (situação 1) nos últimos 6 meses.</small>
+              <small className="text-muted">Valores confirmados (situação 1) nos últimos 12 meses.</small>
             </div>
           </div>
           {loadingGastos ? (
