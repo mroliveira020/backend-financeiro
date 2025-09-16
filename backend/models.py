@@ -364,7 +364,7 @@ def listar_ultimos_lancamentos_confirmados(limit=10):
     return itens
 
 
-def listar_totais_mensais_por_imovel(meses=12):
+def listar_totais_mensais_por_imovel(meses=6, categorias_excluidas=None):
     """Retorna os totais desembolsados por mês (lancamentos confirmados), agrupados por imóvel."""
 
     try:
@@ -372,6 +372,17 @@ def listar_totais_mensais_por_imovel(meses=12):
     except Exception:
         meses = 6
     meses = max(1, min(meses, 24))
+
+    if categorias_excluidas is None:
+        categorias_excluidas = [8, 15, 18]
+    else:
+        filtradas = []
+        for item in categorias_excluidas:
+            try:
+                filtradas.append(int(item))
+            except Exception:
+                continue
+        categorias_excluidas = filtradas
 
     intervalo = max(meses - 1, 0)
 
@@ -387,12 +398,13 @@ def listar_totais_mensais_por_imovel(meses=12):
             "JOIN imoveis i ON i.id = l.id_imovel",
             "WHERE l.id_situacao = 1",
             "  AND (l.ativo IS DISTINCT FROM FALSE)",
-            "  AND (l.id_categoria IS DISTINCT FROM 15)",
-            "  AND (l.id_categoria IS DISTINCT FROM 18)",
-            "  AND (l.id_categoria IS DISTINCT FROM 8)",
         ]
 
         params = []
+
+        if categorias_excluidas:
+            base_sql.append("  AND (l.id_categoria IS NULL OR l.id_categoria NOT IN %s)")
+            params.append(tuple(sorted(set(categorias_excluidas))))
 
         if intervalo > 0:
             base_sql.append(

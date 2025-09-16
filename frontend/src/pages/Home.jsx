@@ -7,11 +7,15 @@ import {
   fetchUltimaAtualizacao,
   fetchUltimosLancamentos,
   fetchGastosMensais,
+  fetchCategorias,
 } from "../services/api";
 import "bootstrap/dist/css/bootstrap.min.css";
 import useEditorToken from "../hooks/useEditorToken";
 import "./Home.css";
 import GastosMensaisChart from "../components/GastosMensaisChart";
+
+const GRAFICO_PREF_KEY = "financeiro:gastos-pref";
+const DEFAULT_CHART_PREF = { meses: 6, excluir: [8, 15, 18] };
 
 function Home() {
   const [imoveis, setImoveis] = useState([]);
@@ -25,8 +29,61 @@ function Home() {
   const [gastosMensais, setGastosMensais] = useState([]);
   const [loadingGastos, setLoadingGastos] = useState(true);
   const [erroGastos, setErroGastos] = useState(false);
+  const [chartPref, setChartPref] = useState(() => ({
+    meses: DEFAULT_CHART_PREF.meses,
+    excluir: [...DEFAULT_CHART_PREF.excluir],
+  }));
+  const [prefReady, setPrefReady] = useState(false);
+  const [showConfigChart, setShowConfigChart] = useState(false);
+  const [configDraft, setConfigDraft] = useState(() => ({
+    meses: DEFAULT_CHART_PREF.meses,
+    excluir: [...DEFAULT_CHART_PREF.excluir],
+  }));
+  const [categoriasDisponiveis, setCategoriasDisponiveis] = useState([]);
+  const [categoriasLoading, setCategoriasLoading] = useState(false);
+  const [categoriasErro, setCategoriasErro] = useState(false);
   const editorToken = useEditorToken();
   const canEdit = !!editorToken;
+
+  useEffect(() => {
+    let storedPref = {
+      meses: DEFAULT_CHART_PREF.meses,
+      excluir: [...DEFAULT_CHART_PREF.excluir],
+    };
+    const raw = localStorage.getItem(GRAFICO_PREF_KEY);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        const meses = Number(parsed?.meses);
+        const mesesValidos = Number.isFinite(meses)
+          ? Math.max(1, Math.min(24, meses))
+          : DEFAULT_CHART_PREF.meses;
+        let excluir = parsed?.excluir;
+        if (Array.isArray(excluir)) {
+          excluir = excluir
+            .map((item) => {
+              const num = Number(item);
+              return Number.isFinite(num) ? num : null;
+            })
+            .filter((item) => item !== null);
+        } else {
+          excluir = DEFAULT_CHART_PREF.excluir;
+        }
+        storedPref = {
+          meses: mesesValidos,
+          excluir: Array.from(new Set(excluir)),
+        };
+      } catch (error) {
+        storedPref = {
+          meses: DEFAULT_CHART_PREF.meses,
+          excluir: [...DEFAULT_CHART_PREF.excluir],
+        };
+      }
+    }
+    setChartPref(storedPref);
+    setConfigDraft(storedPref);
+    setPrefReady(true);
+  }, []);
 
   useEffect(() => {
     setLoadingImoveis(true);
@@ -48,9 +105,17 @@ function Home() {
     fetchUltimaAtualizacao()
       .then((res) => setUltimaAtualizacao(res?.data || null))
       .catch(() => setUltimaAtualizacao(null));
+  }, []);
+
+  useEffect(() => {
+    if (!prefReady) {
+      return;
+    }
 
     setLoadingGastos(true);
-    fetchGastosMensais(12)
+    setErroGastos(false);
+
+    fetchGastosMensais(chartPref.meses, chartPref.excluir || [])
       .then((dados) => {
         setGastosMensais(dados || []);
         setErroGastos(false);
@@ -60,7 +125,12 @@ function Home() {
         setErroGastos(true);
       })
       .finally(() => setLoadingGastos(false));
-  }, []);
+  }, [prefReady, chartPref.meses, (chartPref.excluir || []).join(',')]);
+
+  useEffect(() => {
+    if (!prefReady) return;
+    localStorage.setItem(GRAFICO_PREF_KEY, JSON.stringify(chartPref));
+  }, [chartPref, prefReady]);
 
   const handleAddImovel = async () => {
     if (!newImovel.nome.trim()) return;
@@ -72,6 +142,78 @@ function Home() {
     } catch (error) {
       console.error("Erro ao cadastrar imóvel:", error);
     }
+  };
+
+  const carregarCategorias = async () => {
+    setCategoriasLoading(true);
+    setCategoriasErro(false);
+    try {
+      const lista = await fetchCategorias();
+      const ordenadas = (lista || [])
+        .map((item) => ({ id: item.id, nome: item.categoria }))
+        .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+      setCategoriasDisponiveis(ordenadas);
+    } catch (error) {
+      console.error("Erro ao carregar categorias: ", error);
+      setCategoriasErro(true);
+    } finally {
+      setCategoriasLoading(false);
+    }
+  };
+
+  const handleToggleConfig = () => {
+    const next = !showConfigChart;
+    if (!showConfigChart) {
+      setConfigDraft({
+        meses: chartPref.meses,
+        excluir: [...(chartPref.excluir || [])],
+      });
+      if (!categoriasDisponiveis.length && !categoriasLoading) {
+        carregarCategorias();
+      }
+    }
+    setShowConfigChart(next);
+  };
+
+  const toggleCategoriaExcluida = (idCategoria) => {
+    setConfigDraft((prev) => {
+      const atual = prev.excluir || [];
+      const existe = atual.includes(idCategoria);
+      const atualizado = existe
+        ? atual.filter((item) => item !== idCategoria)
+        : [...atual, idCategoria];
+      return { ...prev, excluir: atualizado };
+    });
+  };
+
+  const incluirTodasCategorias = () => {
+    setConfigDraft((prev) => ({ ...prev, excluir: [] }));
+  };
+
+  const restaurarPadraoCategorias = () => {
+    setConfigDraft({
+      meses: DEFAULT_CHART_PREF.meses,
+      excluir: [...DEFAULT_CHART_PREF.excluir],
+    });
+  };
+
+  const handleAplicarConfiguracao = (event) => {
+    event.preventDefault();
+    const mesesBrutos = configDraft.meses;
+    let mesesNormalizados = DEFAULT_CHART_PREF.meses;
+    if (mesesBrutos !== "" && mesesBrutos !== null) {
+      const mesesNumero = Number(mesesBrutos);
+      if (Number.isFinite(mesesNumero)) {
+        mesesNormalizados = Math.max(1, Math.min(24, mesesNumero));
+      }
+    }
+
+    const excluir = Array.from(
+      new Set((configDraft.excluir || []).map((item) => Number(item)).filter((item) => Number.isFinite(item)))
+    );
+
+    setChartPref({ meses: mesesNormalizados, excluir });
+    setShowConfigChart(false);
   };
 
   return (
@@ -92,9 +234,99 @@ function Home() {
           <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-2">
             <div>
               <h2 className="fs-5 fw-semibold mb-0">Desembolsos mensais</h2>
-              <small className="text-muted">Valores confirmados (situação 1) nos últimos 12 meses.</small>
+              <small className="text-muted">
+                Valores confirmados (situação 1) nos últimos {chartPref.meses} meses.
+              </small>
             </div>
+            <button
+              type="button"
+              className="btn btn-light btn-sm border-0 text-secondary d-flex align-items-center gap-1"
+              onClick={handleToggleConfig}
+            >
+              <span aria-hidden="true">⚙️</span>
+              <span>Configurar</span>
+            </button>
           </div>
+
+          {showConfigChart && (
+            <div className="border rounded bg-light-subtle p-3 mb-3">
+              <form className="d-flex flex-column gap-3" onSubmit={handleAplicarConfiguracao}>
+                <div className="row g-3">
+                  <div className="col-sm-4 col-12">
+                    <label className="form-label small text-muted text-uppercase">Meses de histórico</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="24"
+                      className="form-control form-control-sm"
+                      value={configDraft.meses === "" ? "" : configDraft.meses}
+                      onChange={(e) => {
+                        const valor = e.target.value;
+                        setConfigDraft((prev) => ({
+                          ...prev,
+                          meses: valor === "" ? "" : Number(valor),
+                        }));
+                      }}
+                    />
+                    <small className="text-muted">Digite entre 1 e 24 meses.</small>
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label small text-muted text-uppercase">Categorias a ocultar</label>
+                    {categoriasLoading ? (
+                      <p className="text-muted small mb-0">Carregando categorias...</p>
+                    ) : categoriasErro ? (
+                      <p className="text-danger small mb-0">Não foi possível carregar as categorias.</p>
+                    ) : (
+                      <div className="d-flex flex-wrap gap-2">
+                        {categoriasDisponiveis.map((categoria) => (
+                          <label key={categoria.id} className="form-check form-check-inline small mb-0">
+                            <input
+                              type="checkbox"
+                              className="form-check-input me-1"
+                              checked={(configDraft.excluir || []).includes(categoria.id)}
+                              onChange={() => toggleCategoriaExcluida(categoria.id)}
+                            />
+                            <span className="form-check-label">{categoria.nome}</span>
+                          </label>
+                        ))}
+                        {!categoriasDisponiveis.length && !categoriasLoading && !categoriasErro && (
+                          <span className="text-muted small">Nenhuma categoria disponível.</span>
+                        )}
+                      </div>
+                    )}
+                    <div className="d-flex gap-3 mt-2">
+                      <button
+                        type="button"
+                        className="btn btn-link btn-sm p-0"
+                        onClick={incluirTodasCategorias}
+                      >
+                        Incluir todas
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-link btn-sm p-0"
+                        onClick={restaurarPadraoCategorias}
+                      >
+                        Restaurar padrão
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex justify-content-end gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary btn-sm"
+                    onClick={() => setShowConfigChart(false)}
+                  >
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-primary btn-sm">
+                    Aplicar
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
           {loadingGastos ? (
             <div className="text-center text-muted py-4">Carregando gráfico...</div>
           ) : erroGastos ? (

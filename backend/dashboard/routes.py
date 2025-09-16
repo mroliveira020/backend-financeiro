@@ -153,7 +153,20 @@ def get_ultimos_lancamentos():
 def get_gastos_mensais():
     try:
         meses = request.args.get('meses', 6)
-        dados = listar_totais_mensais_por_imovel(meses)
+        excluir_raw = request.args.get('excluir', '').strip()
+        categorias_excluidas = None
+        if excluir_raw:
+            categorias_excluidas = []
+            for parte in excluir_raw.split(','):
+                parte = parte.strip()
+                if not parte:
+                    continue
+                try:
+                    categorias_excluidas.append(int(parte))
+                except Exception:
+                    continue
+
+        dados = listar_totais_mensais_por_imovel(meses, categorias_excluidas)
         return jsonify(dados), 200
     except Exception as e:
         print(f"Erro ao listar gastos mensais: {e}")

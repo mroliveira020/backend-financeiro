@@ -105,8 +105,8 @@
        2.5.5 [x] Timezone/formatos: garantir comparações por data em UTC/`current_date` e exibir `DD/MM/AAAA`
        2.5.6 [x] Segurança/CORS: endpoints de leitura pública, respeitando `ALLOWED_ORIGINS`
    2.6 [ ] Gráfico financeiro
-       2.6.1 [x] Endpoint `/dashboard/gastos-mensais` com limite configurável (padrão 12 meses)
-       2.6.2 [x] Frontend: gráfico de barras empilhadas (Chart.js) com cores translúcidas
+       2.6.1 [x] Endpoint `/dashboard/gastos-mensais` com limite configurável (padrão 6 meses + filtro `excluir`)
+       2.6.2 [x] Frontend: gráfico configurável (meses/categorias) com Chart.js, cores translúcidas e preferências persistidas
        2.6.3 [ ] Excluir categoria de comissão (ID a confirmar) do agregado além dos IDs 8, 15 e 18
 
 3. Próximas (médio prazo)

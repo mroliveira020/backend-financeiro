@@ -23,6 +23,11 @@ export const addImovel = async (novoImovel) => {
   return data;
 };
 
+export async function fetchCategorias() {
+  const { data } = await api.get('/categorias');
+  return data;
+}
+
 // Rodapé: Data de atualização (último confirmado <= hoje)
 export async function fetchUltimaAtualizacao() {
   const { data } = await api.get('/dashboard/ultima_atualizacao');
@@ -36,7 +41,13 @@ export async function fetchUltimosLancamentos(limit = 10) {
 }
 
 // Dashboard geral: gastos mensais por imóvel (para gráficos)
-export async function fetchGastosMensais(meses = 6) {
-  const { data } = await api.get(`/dashboard/gastos-mensais?meses=${meses}`);
+export async function fetchGastosMensais(meses = 6, categoriasExcluidas = []) {
+  const params = new URLSearchParams();
+  if (meses) params.append("meses", meses);
+  if (categoriasExcluidas.length) {
+    params.append("excluir", categoriasExcluidas.join(","));
+  }
+  const query = params.toString();
+  const { data } = await api.get(`/dashboard/gastos-mensais${query ? `?${query}` : ""}`);
   return data;
 }
