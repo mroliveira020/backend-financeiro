@@ -388,6 +388,8 @@ def listar_totais_mensais_por_imovel(meses=12):
             "WHERE l.id_situacao = 1",
             "  AND (l.ativo IS DISTINCT FROM FALSE)",
             "  AND (l.id_categoria IS DISTINCT FROM 15)",
+            "  AND (l.id_categoria IS DISTINCT FROM 18)",
+            "  AND (l.id_categoria IS DISTINCT FROM 8)",
         ]
 
         params = []
